@@ -1,7 +1,7 @@
 {
-  "name": "localvoice-ai-server",
+  "name": "voxy-server",
   "version": "1.0.0",
-  "description": "Backend for LocalVoice AI",
+  "description": "Backend for Voxy",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
