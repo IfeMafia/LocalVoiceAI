@@ -95,9 +95,8 @@ Visit `http://localhost:3000` to view the application.
 ---
 
 ## 👥 Team
-- **SAMKIEL** - Full Stack Developer
-- **Tobi** - Full Stack Developer
-- **Abraham** - Frontend Developer
-
+- **[Tobi](https://github.com/luponetn)** - Full Stack Developer
+- **[Abraham](https://github.com/abraham123-dev)** - Frontend Developer
+- **[SAMKIEL](https://github.com/samkiell)** - Full Stack Developer
 
 *Built with ❤️ for the African Tech Journal Hackathon.*
