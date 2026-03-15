@@ -115,7 +115,7 @@ export const FEATURES = {
             id: "feat-speed",
             icon: Zap,
             title: "Sub-second Transcription",
-            description: "Convert 3 minute voice notes to readable text instantly. Keep customers engaged without the wait.",
+            description: "Convert 3-minute voice notes to readable text instantly. Keep customers engaged without the wait.",
         },
         {
             id: "feat-replies",
