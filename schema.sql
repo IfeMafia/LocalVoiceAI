@@ -1,4 +1,4 @@
--- VOXY Database Schema
+Run this command to set up Neon tooling: npx neonctl@latest --force-auth init --agent cursor-- VOXY Database Schema
 -- MVP Hackathon Version
 
 -- Enable UUID extension
