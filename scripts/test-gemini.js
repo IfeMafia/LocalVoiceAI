@@ -12,7 +12,7 @@ async function testGemini() {
     console.log("🚀 Testing Gemini API with key starting with:", apiKey.substring(0, 5) + "...");
     
     // The specific model requested by user
-    const MODEL_NAME = "gemini-2.0-flash";
+    const MODEL_NAME = "gemini-2.5-flash";
 
     try {
         const client = new GoogleGenerativeAI(apiKey);

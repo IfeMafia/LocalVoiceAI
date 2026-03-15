@@ -3,32 +3,19 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 async function listModels() {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        console.error("❌ ERROR: GEMINI_API_KEY not found.");
-        return;
-    }
-
+    console.log("Key starts with:", apiKey?.substring(0, 10));
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        // Direct fetch to list models via API as the SDK listModels is sometimes buggy in older node versions
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
         const data = await response.json();
-        
-        if (data.error) {
-            console.error("❌ API Error:", data.error.message);
-            return;
+        if (data.models) {
+            data.models.forEach(m => {
+                console.log(m.name);
+            });
+        } else {
+            console.log("No models found. Response:", JSON.stringify(data));
         }
-
-        console.log("✅ Connection Successful!");
-        console.log("Available Models:");
-        data.models.forEach(m => {
-            console.log(`- ${m.name}`);
-        });
-
-
-    } catch (error) {
-        console.error("❌ Fetch Error:", error.message);
+    } catch (e) {
+        console.error(e);
     }
 }
-
 listModels();
