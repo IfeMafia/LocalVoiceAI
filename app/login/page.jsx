@@ -56,12 +56,6 @@ export default function LoginPage() {
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3.5 rounded-xl flex items-center gap-3 animate-in fade-in zoom-in-95 duration-300">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                  {error}
-                </div>
-              )}
 
               {/* Email Input */}
               <div className="group relative">
