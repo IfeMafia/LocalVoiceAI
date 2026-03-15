@@ -1,32 +1,47 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { getAdminDb } from '@/lib/db';
+import { createAdminClient } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    // 1. Check if we can run a basic SQL command using the query helper
-    const timestampResult = await query('SELECT NOW() as current_time');
-    
-    // 2. Check if the schema tables exist
-    const tablesResult = await query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public' 
-      AND table_name IN ('users', 'businesses', 'assistants', 'conversations', 'credits')
-    `);
+    const supabase = getAdminDb();
+    const storageClient = createAdminClient();
+
+    // 1. Check DB Connection by fetching table count or basic select
+    const { data: tables, error: dbError } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+
+    if (dbError) throw new Error(`Database Error: ${dbError.message}`);
+
+    // 2. Check Storage Buckets
+    const { data: buckets, error: storageError } = await storageClient
+      .storage
+      .listBuckets();
+
+    if (storageError) throw new Error(`Storage Error: ${storageError.message}`);
+
+    const bucketNames = buckets.map(b => b.id);
+    const requiredBuckets = ['avatars', 'conversations', 'documents'];
+    const missingBuckets = requiredBuckets.filter(name => !bucketNames.includes(name));
 
     return NextResponse.json({
       success: true,
-      message: "Successfully connected to Neon DB",
-      serverTime: timestampResult.rows[0]?.current_time,
-      foundTables: tablesResult.rows.map(r => r.table_name),
-      status: tablesResult.rows.length === 5 ? "All schema tables found" : "Tables not initialized yet"
+      message: "Successfully connected to Supabase",
+      testId: "SUPABASE_VERIFIED_777",
+      dbStatus: "Connected",
+      storageStatus: missingBuckets.length === 0 ? "All buckets ready" : `Missing buckets: ${missingBuckets.join(', ')}`,
+      foundBuckets: bucketNames,
+      connectionVerifiedAt: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Database connection test failed:', error);
+    console.error('Supabase connection test failed:', error);
     return NextResponse.json({
       success: false,
-      message: "Database connection failed",
+      message: "Supabase connection failed",
       error: error.message
     }, { status: 500 });
   }
 }
+
