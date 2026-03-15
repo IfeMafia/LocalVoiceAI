@@ -47,7 +47,7 @@ const NotFound = () => {
           <div className="size-2 rounded bg-emerald-500/50" />
         </div>
         <span className="text-xs font-medium tracking-widest uppercase">
-          LocalVoice AI
+          Voxy
         </span>
       </div>
     </div>

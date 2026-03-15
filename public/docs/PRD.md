@@ -1,16 +1,16 @@
 Product Requirements Document (PRD)
 
 Product Name
-LocalVoice AI
+Voxy
 
 Product Type
 AI SaaS platform
 
 Overview
 
-LocalVoice AI is a multilingual AI voice assistant designed to help small and medium businesses communicate with customers automatically. Many local businesses receive inquiries through voice messages or text messages and cannot respond quickly due to workload or language barriers.
+Voxy is a multilingual AI voice assistant designed to help small and medium businesses communicate with customers automatically. Many local businesses receive inquiries through voice messages or text messages and cannot respond quickly due to workload or language barriers.
 
-LocalVoice AI allows businesses to automatically respond to customers using AI that understands voice or text queries and generates replies in multiple languages. The system converts voice to text, processes the request using an AI model, and sends a response back either as text or voice.
+Voxy allows businesses to automatically respond to customers using AI that understands voice or text queries and generates replies in multiple languages. The system converts voice to text, processes the request using an AI model, and sends a response back either as text or voice.
 
 The initial version will be a web-based platform where business owners can interact with the assistant, test responses, and manage conversations. Future versions may integrate directly with messaging platforms like WhatsApp.
 
@@ -25,7 +25,7 @@ Missed messages often result in lost sales opportunities.
 
 Existing AI assistants are typically designed for large companies and do not support local communication patterns or voice-heavy messaging.
 
-LocalVoice AI aims to solve this problem by acting as an AI receptionist that understands customer requests and replies instantly.
+Voxy aims to solve this problem by acting as an AI receptionist that understands customer requests and replies instantly.
 
 Goals
 
@@ -168,4 +168,4 @@ Automated appointment booking
 
 Conclusion
 
-LocalVoice AI aims to simplify customer communication for small businesses by providing a voice-enabled AI assistant capable of responding instantly in multiple languages. The initial MVP focuses on demonstrating the core interaction between voice input, AI understanding, and automated responses while laying the foundation for a scalable SaaS product.
+Voxy aims to simplify customer communication for small businesses by providing a voice-enabled AI assistant capable of responding instantly in multiple languages. The initial MVP focuses on demonstrating the core interaction between voice input, AI understanding, and automated responses while laying the foundation for a scalable SaaS product.

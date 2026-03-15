@@ -1,4 +1,4 @@
--- LocalVoice AI Database Schema Placeholder
+-- Voxy Database Schema Placeholder
 
 -- Users Table
 -- CREATE TABLE users (

@@ -14,7 +14,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-slate-900 text-white min-h-screen p-6 flex flex-col">
       <div className="text-2xl font-bold mb-10 flex items-center gap-2">
-        <span className="text-blue-400">🎙️</span> LocalVoice AI
+        <span className="text-blue-400">🎙️</span> Voxy
       </div>
       
       <nav className="flex-1 space-y-1">

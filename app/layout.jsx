@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "LocalVoice AI - Multilingual Assistant",
+  title: "Voxy - Multilingual Assistant",
   description: "AI Voice assistant for small businesses in Africa",
 };
 

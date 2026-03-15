@@ -1,9 +1,9 @@
-LocalVoice AI
+Voxy
 Technical Documentation and Task Assignment
 
 Project Overview
 
-LocalVoice AI is a multilingual AI voice assistant designed to help small businesses respond to customer inquiries automatically. Many customers communicate using voice notes or informal text in languages such as English, Pidgin, or Yoruba. The system converts voice messages to text, processes the request using an AI model, and generates a response that the business can send back to the customer.
+Voxy is a multilingual AI voice assistant designed to help small businesses respond to customer inquiries automatically. Many customers communicate using voice notes or informal text in languages such as English, Pidgin, or Yoruba. The system converts voice messages to text, processes the request using an AI model, and generates a response that the business can send back to the customer.
 
 The first version of the product will be a web based dashboard where businesses can interact with the assistant, test responses, and manage conversations.
 

@@ -16,7 +16,7 @@ app.use('/api/conversations', require('./routes/conversations.routes'));
 app.use('/api/analytics', require('./routes/analytics.routes'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'LocalVoice AI backend is running' });
+  res.json({ message: 'Voxy backend is running' });
 });
 
 app.listen(PORT, () => {

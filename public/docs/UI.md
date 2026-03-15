@@ -1,7 +1,7 @@
 UI Wireframe Documentation
 
 Product Name
-LocalVoice AI
+Voxy
 
 Design Principles
 
@@ -309,4 +309,4 @@ Voice playback for responses
 
 Conclusion
 
-The UI of LocalVoice AI should prioritize clarity and simplicity. The assistant interaction must be easy to access, while the dashboard provides quick insights into customer communication activity. The structure described here ensures consistency across all pages and supports efficient collaboration between developers.
+The UI of Voxy should prioritize clarity and simplicity. The assistant interaction must be easy to access, while the dashboard provides quick insights into customer communication activity. The structure described here ensures consistency across all pages and supports efficient collaboration between developers.

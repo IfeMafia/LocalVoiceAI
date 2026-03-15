@@ -9,7 +9,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-2">
             <div className="size-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 shrink-0" />
             <span className="text-xl font-bold tracking-tight">
-              LocalVoice <span className="text-emerald-500">AI</span>
+              Voxy
             </span>
           </div>
           <div className="hidden items-center gap-8 text-sm font-medium text-zinc-400 md:flex">
@@ -118,7 +118,7 @@ const LandingPage = () => {
             "
           </div>
           <p className="text-2xl font-light italic text-zinc-300 sm:text-3xl">
-            "LocalVoice AI transformed how I handle delivery orders in Lagos. I
+            "Voxy transformed how I handle delivery orders in Lagos. I
             no longer miss calls during rush hour, and my customers love that it
             speaks their language."
           </p>
@@ -138,7 +138,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-2">
             <div className="size-6 rounded bg-emerald-500" />
             <span className="text-lg font-bold tracking-tight">
-              LocalVoice AI
+              Voxy
             </span>
           </div>
           <div className="flex gap-8 text-sm text-zinc-500">
@@ -153,7 +153,7 @@ const LandingPage = () => {
             </a>
           </div>
           <p className="text-sm text-zinc-600">
-            &copy; {new Date().getFullYear()} LocalVoice AI. Built for the
+            &copy; {new Date().getFullYear()} Voxy. Built for the
             future of Africa.
           </p>
         </div>
