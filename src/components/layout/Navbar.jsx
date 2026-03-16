@@ -7,7 +7,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
           <img src="/favicon.jpg" alt="Voxy Logo" className="size-8 rounded-lg object-cover" />
-          <span className="text-xl font-bold tracking-tight text-white">
+          <span className="font-display text-xl font-bold tracking-tight text-white">
             Voxy
           </span>
         </div>

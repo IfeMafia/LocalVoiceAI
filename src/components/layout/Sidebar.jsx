@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/favicon.jpg" alt="Voxy Logo" className="size-8 rounded-lg object-cover" />
-            <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Voxy</span>
+            <span className="font-display text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Voxy</span>
           </div>
           <button 
             onClick={onClose}
@@ -100,7 +100,7 @@ export default function Sidebar({ isOpen, onClose }) {
               {userDisplayName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tighter truncate leading-tight">{userDisplayName}</div>
+              <div className="font-display text-base font-bold text-zinc-900 dark:text-white uppercase tracking-tighter truncate leading-tight">{userDisplayName}</div>
               <div className="text-[10px] text-zinc-500 font-medium capitalize truncate">{userRoleDisplay.replace('_', ' ')}</div>
             </div>
           </div>

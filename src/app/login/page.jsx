@@ -72,12 +72,6 @@ export default function LoginPage() {
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-5">
-              {isRegistered && (
-                <div className="bg-[#00D18F]/10 border border-[#00D18F]/20 text-[#00D18F] text-sm p-3.5 rounded-xl flex items-center gap-3 animate-in fade-in zoom-in-95 duration-300 mb-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Account created! Log in to continue.
-                </div>
-              )}
 
               {/* Email Input */}
               <div className="group relative">
