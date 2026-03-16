@@ -17,8 +17,8 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useScrolled } from "@/landing/hooks/useScrolled";
-import { NAV_LINKS } from "@/landing/landingData";
+import { useScrolled } from "@/src/landing/hooks/useScrolled";
+import { NAV_LINKS } from "@/src/landing/landingData";
 
 export default function Navbar() {
   const router = useRouter();

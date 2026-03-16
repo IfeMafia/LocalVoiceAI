@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { HERO, SECTION_IDS } from "@/landing/landingData";
+import { HERO, SECTION_IDS } from "@/src/landing/landingData";
 
 export default function Hero() {
   const router = useRouter();

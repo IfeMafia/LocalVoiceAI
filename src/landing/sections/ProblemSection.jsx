@@ -12,8 +12,8 @@
  */
 
 import React from "react";
-import SectionHeader from "@/landing/shared/SectionHeader";
-import { PROBLEM, SECTION_IDS } from "@/landing/landingData";
+import SectionHeader from "@/src/landing/shared/SectionHeader";
+import { PROBLEM, SECTION_IDS } from "@/src/landing/landingData";
 
 export default function ProblemSection() {
   return (

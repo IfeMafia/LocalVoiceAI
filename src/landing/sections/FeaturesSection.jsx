@@ -14,8 +14,8 @@
 "use client";
 
 import React, { useState } from "react";
-import SectionHeader from "@/landing/shared/SectionHeader";
-import { FEATURES, SECTION_IDS } from "@/landing/landingData";
+import SectionHeader from "@/src/landing/shared/SectionHeader";
+import { FEATURES, SECTION_IDS } from "@/src/landing/landingData";
 
 export default function FeaturesSection() {
   const [activeId, setActiveId] = useState(FEATURES.items[0].id);

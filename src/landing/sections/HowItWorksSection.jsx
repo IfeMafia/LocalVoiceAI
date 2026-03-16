@@ -13,8 +13,8 @@
  */
 
 import React from "react";
-import SectionHeader from "@/landing/shared/SectionHeader";
-import { HOW_IT_WORKS, SECTION_IDS } from "@/landing/landingData";
+import SectionHeader from "@/src/landing/shared/SectionHeader";
+import { HOW_IT_WORKS, SECTION_IDS } from "@/src/landing/landingData";
 
 export default function HowItWorksSection() {
   return (

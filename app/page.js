@@ -6,13 +6,13 @@
  * Each import is a self-contained section from src/landing/sections/.
  */
 
-import Navbar from "@/landing/sections/Navbar";
-import Hero from "@/landing/sections/Hero";
-import ProblemSection from "@/landing/sections/ProblemSection";
-import HowItWorksSection from "@/landing/sections/HowItWorksSection";
-import FeaturesSection from "@/landing/sections/FeaturesSection";
-import CTASection from "@/landing/sections/CTASection";
-import Footer from "@/landing/sections/Footer";
+import Navbar from "@/src/landing/sections/Navbar";
+import Hero from "@/src/landing/sections/Hero";
+import ProblemSection from "@/src/landing/sections/ProblemSection";
+import HowItWorksSection from "@/src/landing/sections/HowItWorksSection";
+import FeaturesSection from "@/src/landing/sections/FeaturesSection";
+import CTASection from "@/src/landing/sections/CTASection";
+import Footer from "@/src/landing/sections/Footer";
 
 
 export default function LandingPage() {

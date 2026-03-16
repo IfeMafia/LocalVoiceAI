@@ -11,7 +11,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { FOOTER } from "@/landing/landingData";
+import { FOOTER } from "@/src/landing/landingData";
 
 export default function Footer() {
   return (

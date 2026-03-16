@@ -16,7 +16,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CTA } from "@/landing/landingData";
+import { CTA } from "@/src/landing/landingData";
 
 export default function CTASection() {
   const router = useRouter();

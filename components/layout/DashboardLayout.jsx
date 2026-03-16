@@ -1,3 +1,5 @@
+"use client";
+
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { useAuth } from '@/app/hooks/useAuth';
