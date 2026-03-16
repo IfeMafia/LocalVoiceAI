@@ -17,6 +17,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useScrolled } from "@/landing/hooks/useScrolled";
 import { useAuth } from "@/hooks/useAuth";
 import { NAV_LINKS } from "@/landing/landingData";
@@ -70,6 +71,7 @@ export default function Navbar() {
 
         {/* Auth CTAs */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           {user ? (
             <Button
               size="sm"

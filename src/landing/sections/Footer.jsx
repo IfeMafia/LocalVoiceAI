@@ -19,10 +19,10 @@ export default function Footer() {
       <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
 
         {/* Brand */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <img src="/favicon.jpg" alt="Voxy Logo" className="size-8 rounded-lg object-cover" />
-          <span className="font-bold text-[16px] tracking-tight text-voxy-text">
-            {FOOTER.brand}
+          <span className="text-xl font-bold tracking-tight text-white">
+            VOXY
           </span>
           <span className="text-voxy-subtle text-[13px] hidden sm:inline">
             — {FOOTER.tagline}
