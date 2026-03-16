@@ -21,7 +21,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      router.push('/login');
     }
   }, [user, router]);
 
