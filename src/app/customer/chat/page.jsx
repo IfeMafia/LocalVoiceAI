@@ -33,7 +33,7 @@ export default function CustomerChatHistoryPage() {
   }, []);
 
   return (
-    <DashboardLayout title="Concierge Hub">
+    <DashboardLayout title="Chats">
       <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
           <div className="space-y-1">
@@ -101,15 +101,12 @@ export default function CustomerChatHistoryPage() {
               );
             })
           ) : (
-            <div className="text-center py-32 bg-[#fcfcfd] dark:bg-white/5 rounded-[3rem] border-4 border-dashed border-zinc-200 dark:border-white/10">
-              <div className="w-24 h-24 bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl flex items-center justify-center mx-auto mb-8 animate-pulse text-[#00D18F]">
-                <MessageSquare className="w-12 h-12" />
-              </div>
-              <h3 className="text-3xl font-display font-black text-zinc-900 dark:text-white tracking-tighter">Quiet Day?</h3>
-              <p className="text-zinc-500 mt-3 text-lg font-medium opacity-80">No active conversations currently.</p>
-              <Link href="/customer/find-business" className="mt-10 inline-block">
-                <Button className="rounded-2xl h-14 px-8 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:scale-105 transition-transform">
-                  Explore Businesses
+            <div className="text-center py-24 bg-transparent border-none">
+              <h3 className="text-2xl md:text-3xl font-display font-black text-zinc-900 dark:text-white tracking-tighter">No Chats</h3>
+              <p className="text-zinc-500 mt-3 text-base font-medium opacity-80">You haven't established any conversations yet.</p>
+              <Link href="/customer/find-business" className="mt-8 inline-block">
+                <Button className="bg-[#00D18F] hover:bg-[#00A370] text-white rounded-2xl h-14 px-8 shadow-2xl shadow-[#00D18F]/30 hover:shadow-[#00D18F]/50 transition-all duration-300 active:scale-95 font-bold uppercase tracking-widest text-xs">
+                  Find a Business
                 </Button>
               </Link>
             </div>
