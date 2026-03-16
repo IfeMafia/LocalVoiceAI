@@ -41,7 +41,7 @@ const SUGGESTED_QUERIES = [
 
 import { supabase } from "@/lib/supabase";
 
-export default function ChatInterface({ business }) {
+export default function ChatInterface({ business, userName }) {
   const router = useRouter();
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -69,7 +69,7 @@ export default function ChatInterface({ business }) {
         const res = await fetch('/api/conversations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ businessId: business.id })
+          body: JSON.stringify({ businessId: business.id, customerName: userName })
         });
         const data = await res.json();
         
