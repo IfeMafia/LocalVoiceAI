@@ -5,22 +5,13 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-async function checkCols() {
+async function addCol() {
   try {
-    const res = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'conversations';
+    await pool.query(`
+      ALTER TABLE conversations 
+      ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES users(id) ON DELETE SET NULL;
     `);
-    console.log("Columns:", res.rows.map(r => r.column_name));
-    
-    // Also check users table structure
-    const usersRes = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'users';
-    `);
-    console.log("User Columns:", usersRes.rows.map(r => r.column_name));
+    console.log("customer_id column added successfully.");
   } catch (err) {
     console.error("Test Error:", err);
   } finally {
@@ -28,4 +19,4 @@ async function checkCols() {
   }
 }
 
-checkCols();
+addCol();
