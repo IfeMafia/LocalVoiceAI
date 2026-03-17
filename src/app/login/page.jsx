@@ -33,17 +33,6 @@ function LoginContent() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
-  // Centralized redirect logic
-  useEffect(() => {
-    if (user) {
-      const routes = {
-        customer: '/customer/chat',
-        admin: '/lighthouse/dashboard'
-      };
-      router.push(routes[user.role] || '/business/dashboard');
-    }
-  }, [user, router]);
-
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
@@ -52,7 +41,15 @@ function LoginContent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(formData);
+      const data = await login(formData);
+      if (data?.success && data?.user) {
+        const routes = {
+          customer: '/customer/chat',
+          admin: '/lighthouse/dashboard'
+        };
+        const target = routes[data.user.role] || '/business/dashboard';
+        router.push(target);
+      }
     } catch (err) {
       // Error is gracefully handled by the useAuth hook/toast
     }
