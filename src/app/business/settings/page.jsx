@@ -154,8 +154,7 @@ export default function SettingsPage() {
       <div className="max-w-5xl mx-auto space-y-12 pb-32">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-5xl font-display font-bold text-white tracking-tight leading-none uppercase tracking-tighter">Settings</h1>
-            <p className="mt-4 text-zinc-500 text-xs font-medium">Configure your business profile and AI assistant behavior.</p>
+            <p className="text-zinc-500 text-sm font-medium">Configure your business profile and AI assistant behavior.</p>
           </div>
           
           <button

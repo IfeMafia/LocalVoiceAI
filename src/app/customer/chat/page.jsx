@@ -43,9 +43,6 @@ export default function CustomerChatHistoryPage() {
       <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000 p-4 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-zinc-900 dark:text-white tracking-tight leading-none uppercase tracking-tighter">
-              Chat History
-            </h1>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium mt-2">
               Manage your conversations with local businesses.
             </p>

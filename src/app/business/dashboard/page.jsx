@@ -76,9 +76,6 @@ export default function DashboardPage() {
     <DashboardLayout title="Dashboard">
       <div className="space-y-8">
         <div>
-          <h1 className="text-5xl font-display font-bold text-white tracking-tight mb-2">
-            Dashboard
-          </h1>
           <p className="text-zinc-400">
             Welcome back, <span className="text-[#00D18F] font-semibold">{user?.name?.split(' ')[0] || 'Business Owner'}</span>. Here’s what’s happening with your business today.
           </p>

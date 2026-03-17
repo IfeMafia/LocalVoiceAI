@@ -80,7 +80,7 @@ export default function FindBusinessPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-6">
             <Loader2 className="w-16 h-16 animate-spin text-[#00D18F]" />
-            <p className="text-zinc-400 font-black uppercase tracking-[0.4em] text-sm italic">Scanning Businesses</p>
+            <p className="text-zinc-400 font-bold uppercase tracking-widest text-sm">Scanning Businesses</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
@@ -91,7 +91,7 @@ export default function FindBusinessPage() {
                 style={{ animationDelay: `${idx * 100}ms` }}
               >
                 {/* Card Top: Image Placeholder or Color */}
-                <div className="h-64 relative bg-gradient-to-br from-zinc-800 to-zinc-900 overflow-hidden">
+                <div className="h-64 relative bg-[#0a0a0a] overflow-hidden">
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all duration-700" />
                   <div className="absolute top-6 left-6 z-10">
                     <Badge className="bg-black/60 backdrop-blur-xl text-white border-none px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl">
@@ -110,7 +110,7 @@ export default function FindBusinessPage() {
                 <div className="p-8 pt-6 space-y-6">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
-                      <h3 className="text-2xl font-display font-black text-white italic tracking-tight group-hover:text-[#00D18F] transition-colors leading-tight truncate">
+                      <h3 className="text-2xl font-display font-bold text-white tracking-tight group-hover:text-[#00D18F] transition-colors leading-tight truncate">
                         {business.name}
                       </h3>
                       <div className="flex items-center gap-2 text-zinc-500 text-xs font-bold">
@@ -153,7 +153,7 @@ export default function FindBusinessPage() {
         
         {!loading && filteredBusinesses.length === 0 && (
           <div className="text-center py-32 bg-white/[0.02] rounded-[4rem] border-4 border-dashed border-white/5">
-            <h3 className="text-4xl font-display font-black text-white tracking-tighter italic">No businesses found</h3>
+            <h3 className="text-4xl font-display font-bold text-white tracking-tight">No businesses found</h3>
             <p className="text-zinc-500 mt-4 text-xl font-medium opacity-80">Try adjusting your search criteria.</p>
             <Button 
               variant="outline" 
