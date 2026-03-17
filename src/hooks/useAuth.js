@@ -1,33 +1,37 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useUserStore } from "@/store/useUserStore";
 
 export const useAuth = () => {
-  const [loading, setLoading] = useState(true);
+  const { user, setUser, clearUser } = useUserStore();
+  const [loading, setLoading] = useState(!user);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
 
-  // Check current session on mount
+  // Check current session on mount if user not in store
   useEffect(() => {
     const fetchUser = async () => {
+      if (user) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         const res = await fetch('/api/me');
         const data = await res.json();
         if (data.success) {
           setUser(data.user);
         } else {
-          setUser(null);
+          clearUser();
         }
       } catch (err) {
         console.error('Session fetch failed:', err);
-        setUser(null);
+        clearUser();
       } finally {
         setLoading(false);
       }
     };
     fetchUser();
-  }, []);
+  }, [user, setUser, clearUser]);
 
   const register = async ({ email, password, name, role = 'customer' }) => {
     setLoading(true);
@@ -85,7 +89,7 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       await fetch('/api/logout', { method: 'POST' });
-      setUser(null);
+      clearUser();
       toast.success("Logged out successfully");
       window.location.href = "/";
     } catch (error) {
@@ -98,8 +102,9 @@ export const useAuth = () => {
       const res = await fetch('/api/me');
       const data = await res.json();
       if (data.success) setUser(data.user);
+      else clearUser();
     } catch (err) {
-      setUser(null);
+      clearUser();
     }
   };
 
