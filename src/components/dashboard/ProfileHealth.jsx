@@ -1,5 +1,4 @@
-import React from 'react';
-import { Check, X, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 const ProfileHealth = ({ business }) => {
@@ -24,12 +23,12 @@ const ProfileHealth = ({ business }) => {
           <div key={field.key} className="flex items-center justify-between py-2 border-b border-white/[0.03] last:border-0">
             <span className="text-zinc-400 text-sm font-medium">{field.label}</span>
             {business?.[field.key] ? (
-              <div className="bg-emerald-500/10 p-1 rounded-full text-emerald-500">
-                <Check size={12} strokeWidth={3} />
+              <div className="text-voxy-primary">
+                <CheckCircle2 size={16} />
               </div>
             ) : (
-              <div className="bg-red-500/10 p-1 rounded-full text-red-500">
-                <X size={12} strokeWidth={3} />
+              <div className="text-red-500">
+                <XCircle size={16} />
               </div>
             )}
           </div>

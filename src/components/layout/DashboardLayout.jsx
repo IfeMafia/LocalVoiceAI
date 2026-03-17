@@ -39,7 +39,7 @@ export default function DashboardLayout({ children, title }) {
           onMenuClick={() => setIsSidebarOpen(true)}
         />
         <main className="flex-1 overflow-y-auto flex flex-col">
-          <div className="flex-1 px-4 sm:px-8 py-6 sm:py-8">
+          <div className="flex-1 px-4 sm:px-8 py-2 sm:py-4">
             {children}
           </div>
         </main>

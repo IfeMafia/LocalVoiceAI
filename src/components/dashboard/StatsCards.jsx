@@ -1,17 +1,19 @@
 import React from 'react';
-import { MessageSquare, Users, CheckCircle, AlertCircle } from 'lucide-react';
+import { MessageSquare, Activity, CheckCircle2, UserCheck } from 'lucide-react';
 
-const StatsCard = ({ title, value, description, icon: Icon, colorClass }) => (
-  <div className="bg-[#111111] border border-white/5 p-6 rounded-2xl transition-all duration-300 hover:border-[#00D18F]/20">
-    <div className="space-y-4">
-      <div className={`w-10 h-10 rounded-lg ${colorClass} bg-opacity-10 flex items-center justify-center`}>
-        <Icon size={20} className={colorClass.split(' ')[0]} />
+const StatsCard = ({ title, value, description, icon: Icon, colorClass, bgColor, textColor }) => (
+  <div className="bg-[#111111] border border-white/5 p-6 rounded-2xl transition-all duration-300 hover:border-voxy-primary/20 hover:bg-[#141414] group">
+    <div className="space-y-5">
+      <div className={`w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}>
+        <Icon size={24} className={textColor} />
       </div>
       
       <div>
-        <h3 className="text-zinc-500 text-xs font-semibold mb-1">{title}</h3>
-        <p className="text-3xl font-display font-bold text-white tracking-tight">{value}</p>
-        <p className="text-[10px] text-zinc-600 mt-1 font-medium">{description}</p>
+        <div className="flex items-baseline justify-between mb-1">
+          <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-wider">{title}</h3>
+        </div>
+        <p className="text-3xl font-display font-bold text-white tracking-tight leading-none mb-2">{value}</p>
+        <p className="text-[11px] text-zinc-600 font-medium leading-tight">{description}</p>
       </div>
     </div>
   </div>
@@ -22,30 +24,34 @@ const StatsCards = ({ stats }) => {
     {
       title: 'Total Conversations',
       value: stats?.total || 0,
-      description: 'Cumulative total conversations',
+      description: 'Cumulative total conversations across all channels',
       icon: MessageSquare,
-      colorClass: 'text-blue-400 bg-blue-400'
+      bgColor: 'bg-blue-500/10',
+      textColor: 'text-blue-500'
     },
     {
-      title: 'Active Conversations Today',
+      title: 'Active Today',
       value: stats?.activeToday || 0,
-      description: 'Conversations with activity today',
-      icon: Users,
-      colorClass: 'text-purple-400 bg-purple-400'
+      description: 'Conversations with user activity within last 24h',
+      icon: Activity,
+      bgColor: 'bg-indigo-500/10',
+      textColor: 'text-indigo-500'
     },
     {
-      title: 'AI Resolved Conversations',
+      title: 'AI Resolved',
       value: stats?.aiResolved || 0,
-      description: 'Handled entirely by AI',
-      icon: CheckCircle,
-      colorClass: 'text-[#00D18F] bg-[#00D18F]'
+      description: 'Conversations handled entirely without human intervention',
+      icon: CheckCircle2,
+      bgColor: 'bg-voxy-primary/10',
+      textColor: 'text-voxy-primary'
     },
     {
       title: 'Owner Interventions',
       value: stats?.ownerInterventions || 0,
-      description: 'Owner replied at least once',
-      icon: AlertCircle,
-      colorClass: 'text-orange-400 bg-orange-400'
+      description: 'Conversations where you joined to assist the customer',
+      icon: UserCheck,
+      bgColor: 'bg-orange-500/10',
+      textColor: 'text-orange-500'
     },
   ];
 

@@ -3,7 +3,7 @@ import { ThemeToggle } from './ThemeToggle';
 
 export default function Header({ title, onMenuClick }) {
   return (
-    <header className="h-20 border-b border-zinc-100 dark:border-white/5 bg-white/80 dark:bg-black/80 backdrop-blur-3xl flex items-center justify-between px-6 sm:px-10 sticky top-0 z-50 transition-all duration-500">
+    <header className="h-16 border-b border-zinc-100 dark:border-white/5 bg-white/80 dark:bg-black/80 backdrop-blur-3xl flex items-center justify-between px-6 sm:px-10 sticky top-0 z-50 transition-all duration-500">
       <div className="flex items-center gap-6">
         <button 
           onClick={onMenuClick}

@@ -74,10 +74,10 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout title="Dashboard">
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <p className="text-zinc-400">
-            Welcome back, <span className="text-[#00D18F] font-semibold">{user?.name?.split(' ')[0] || 'Business Owner'}</span>. Here’s what’s happening with your business today.
+          <p className="text-zinc-500 text-sm">
+            Welcome back, <span className="text-voxy-primary font-semibold">{user?.name?.split(' ')[0] || 'Business Owner'}</span>. Here’s what’s happening with your business today.
           </p>
         </div>
 
