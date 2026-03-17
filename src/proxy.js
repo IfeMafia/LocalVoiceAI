@@ -11,7 +11,7 @@ const ROLE_DASHBOARDS = {
   admin: '/lighthouse/dashboard'
 };
 
-export async function proxy(request) {
+export default async function proxy(request) {
   const { nextUrl, cookies } = request;
   const token = cookies.get(TOKEN_NAME)?.value;
 
