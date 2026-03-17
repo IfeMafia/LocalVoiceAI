@@ -57,7 +57,7 @@ export default function BusinessChatPage({ params }) {
 
   if (loading) {
     return (
-      <DashboardLayout title="Loading Concierge...">
+      <DashboardLayout title="Loading Assistant...">
         <div className="flex items-center justify-center h-[70vh]">
           <Loader2 className="w-12 h-12 animate-spin text-[#00D18F]" />
         </div>
