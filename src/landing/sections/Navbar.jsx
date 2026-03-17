@@ -21,7 +21,7 @@ export default function Navbar() {
     if (user.role === 'customer') {
       router.push('/customer/chat');
     } else if (user.role === 'admin') {
-      router.push('/admin/dashboard');
+      router.push('/lighthouse/dashboard');
     } else {
       router.push('/business/dashboard');
     }

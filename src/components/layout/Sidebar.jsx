@@ -21,9 +21,9 @@ export default function Sidebar({ isOpen, onClose }) {
   const getNavItems = () => {
     if (role === 'admin') {
       return [
-        { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-        { name: 'Users', href: '/admin/users', icon: Users },
-        { name: 'Settings', href: '/admin/settings', icon: Settings },
+        { name: 'Dashboard', href: '/lighthouse/dashboard', icon: LayoutDashboard },
+        { name: 'Users', href: '/lighthouse/users', icon: Users },
+        { name: 'Settings', href: '/lighthouse/settings', icon: Settings },
       ];
     } else if (role === 'customer') {
       return [

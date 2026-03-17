@@ -37,7 +37,7 @@ function LoginContent() {
     if (user) {
       const routes = {
         customer: '/customer/chat',
-        admin: '/admin/dashboard'
+        admin: '/lighthouse/dashboard'
       };
       router.push(routes[user.role] || '/business/dashboard');
     }
