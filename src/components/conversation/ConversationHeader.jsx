@@ -10,6 +10,8 @@ const ConversationHeader = ({ customerName, status, startTime }) => {
         return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'Needs Owner Response':
         return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+      case 'Active Now':
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       default:
         return 'bg-white/5 text-zinc-500 border-white/5';
     }

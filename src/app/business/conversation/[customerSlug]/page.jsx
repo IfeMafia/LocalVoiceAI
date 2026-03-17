@@ -20,6 +20,7 @@ export default function ConversationPage({ params }) {
   const [messages, setMessages] = useState([]);
   const [sending, setSending] = useState(false);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [isCustomerOnline, setIsCustomerOnline] = useState(false);
 
   useEffect(() => {
     if (!customerSlug || !user) return;
@@ -111,12 +112,35 @@ export default function ConversationPage({ params }) {
           setConversation(prev => ({ ...prev, ...payload.new }));
         }
       )
-      .subscribe();
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (payload.payload.senderType === 'customer') {
+          setIsAiTyping(payload.payload.isTyping); 
+        }
+      })
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const online = Object.values(state).flat().some(p => p.role === 'customer');
+        setIsCustomerOnline(online);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ online_at: new Date().toISOString(), role: 'business' });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [conversation?.id]);
+
+  const handleTyping = (isTyping) => {
+    if (!conversation?.id) return;
+    supabase.channel(`chat:${conversation.id}`).send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { isTyping, senderType: 'owner' }
+    });
+  };
 
   const handleSendMessage = async (content) => {
     if (!user || !conversation?.id || !content.trim()) return;
@@ -178,13 +202,17 @@ export default function ConversationPage({ params }) {
       <div className="flex flex-col h-[calc(100vh-140px)] bg-black rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
         <ConversationHeader 
           customerName={conversation?.customer_name}
-          status={conversation?.status}
+          status={isCustomerOnline ? 'Active Now' : (conversation?.status || 'Offline')}
           startTime={conversation?.created_at}
         />
         
         <MessageList messages={messages} isTyping={isAiTyping} />
         
-        <MessageInput onSendMessage={handleSendMessage} isLoading={sending} />
+        <MessageInput 
+          onSendMessage={handleSendMessage} 
+          onTyping={handleTyping}
+          isLoading={sending} 
+        />
       </div>
     </DashboardLayout>
   );

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, Paperclip, Smile } from 'lucide-react';
 
-const MessageInput = ({ onSendMessage, isLoading }) => {
+const MessageInput = ({ onSendMessage, onTyping, isLoading }) => {
   const [content, setContent] = useState('');
 
   const handleSubmit = (e) => {
@@ -9,8 +9,23 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
     if (content.trim() && !isLoading) {
       onSendMessage(content.trim());
       setContent('');
+      if (onTyping) onTyping(false);
     }
   };
+
+  useEffect(() => {
+    if (!onTyping) return;
+    
+    const isCurrentlyTyping = content.trim().length > 0;
+    onTyping(isCurrentlyTyping);
+
+    // Set a timeout to clear typing status if the user stops typing
+    const timeout = setTimeout(() => {
+      onTyping(false);
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [content, onTyping]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
