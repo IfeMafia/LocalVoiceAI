@@ -33,7 +33,7 @@ const ConversationHeader = ({ customerName, status, startTime }) => {
             {customerName || 'Anonymous Customer'}
           </h1>
           <div className="flex items-center gap-2 sm:gap-3 text-zinc-500 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5 sm:mt-1">
-            <Clock size={10} className="sm:size-12 text-[#00D18F]/60" />
+            <Clock className="size-2.5 sm:size-3 text-[#00D18F]/60" />
             Started {startTime ? new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
           </div>
         </div>

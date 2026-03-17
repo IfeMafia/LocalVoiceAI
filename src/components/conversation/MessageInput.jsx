@@ -23,7 +23,7 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
       <form onSubmit={handleSubmit} className="max-w-5xl mx-auto flex items-end gap-2 sm:gap-3">
         <div className="flex-1 relative group bg-white/[0.02] border border-white/[0.05] rounded-xl sm:rounded-[1.5rem] p-1.5 sm:p-2 flex items-end focus-within:border-[#00D18F]/30 focus-within:ring-4 focus-within:ring-[#00D18F]/5 transition-all duration-500">
           <button type="button" className="p-2 sm:p-3 text-zinc-600 hover:text-white transition-colors">
-            <Paperclip size={18} sm:size={20} />
+            <Paperclip className="size-[18px] sm:size-[20px]" />
           </button>
           <textarea
             value={content}
@@ -34,7 +34,7 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
             className="flex-1 bg-transparent border-none outline-none py-2.5 sm:py-3 px-1 sm:px-2 text-white text-[14px] sm:text-[15px] placeholder:text-zinc-700 transition-all resize-none max-h-32 font-medium"
           />
           <button type="button" className="p-2 sm:p-3 text-zinc-600 hover:text-white transition-colors">
-            <Smile size={18} sm:size={20} />
+            <Smile className="size-[18px] sm:size-[20px]" />
           </button>
         </div>
         <button
@@ -42,7 +42,7 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
           disabled={!content.trim() || isLoading}
           className="bg-[#00D18F] text-black size-12 sm:size-14 rounded-xl sm:rounded-2xl font-bold hover:bg-emerald-400 hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-30 disabled:grayscale disabled:scale-100 flex items-center justify-center shadow-xl shadow-[#00D18F]/20 group"
         >
-          <Send size={18} sm:size={20} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" strokeWidth={3} />
+          <Send className="size-[18px] sm:size-[20px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" strokeWidth={3} />
         </button>
       </form>
     </div>

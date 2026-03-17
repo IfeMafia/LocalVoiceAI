@@ -258,7 +258,7 @@ export default function ChatInterface({ business, userName }) {
                   ? "bg-[#00D18F]/5 border-[#00D18F]/20 text-[#00D18F]"
                   : "bg-white/5 border-white/5 text-zinc-500"
               }`}>
-                {msg.role === "ai" ? <Sparkles size={14} className="sm:size-4" /> : <User size={14} className="sm:size-4" />}
+                {msg.role === "ai" ? <Sparkles className="size-3.5 sm:size-4" /> : <User className="size-3.5 sm:size-4" />}
               </div>
 
               <div className="space-y-1.5">
@@ -317,7 +317,7 @@ export default function ChatInterface({ business, userName }) {
         <form onSubmit={handleSendMessage} className="relative group max-w-5xl mx-auto flex items-end gap-2 sm:gap-3">
           <div className="flex-1 flex items-end gap-1 sm:gap-2 bg-white/[0.02] border border-white/[0.05] rounded-2xl sm:rounded-[1.8rem] p-1.5 sm:p-2 focus-within:ring-4 focus-within:ring-[#00D18F]/5 focus-within:border-[#00D18F]/30 transition-all duration-500 shadow-2xl">
             <Button type="button" variant="ghost" size="icon" className="hidden sm:flex text-zinc-500 hover:text-white h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl">
-              <Paperclip size={18} sm:size={20} />
+              <Paperclip className="size-[18px] sm:size-[20px]" />
             </Button>
             
             <input
@@ -329,7 +329,7 @@ export default function ChatInterface({ business, userName }) {
             />
 
             <Button type="button" variant="ghost" size="icon" className="text-zinc-500 hover:text-white h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl">
-              <Smile size={18} sm:size={20} />
+              <Smile className="size-[18px] sm:size-[20px]" />
             </Button>
           </div>
           
@@ -338,7 +338,7 @@ export default function ChatInterface({ business, userName }) {
             disabled={!inputValue.trim()}
             className="bg-[#00D18F] text-black size-12 sm:size-14 rounded-2xl font-bold hover:bg-emerald-400 hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-20 disabled:grayscale disabled:scale-100 flex items-center justify-center shadow-xl shadow-[#00D18F]/20 group"
           >
-            <Send size={18} sm:size={20} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" strokeWidth={3} />
+            <Send className="size-[18px] sm:size-[20px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" strokeWidth={3} />
           </button>
         </form>
       </div>

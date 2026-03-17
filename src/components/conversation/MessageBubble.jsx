@@ -19,7 +19,7 @@ const MessageBubble = ({ message, senderType }) => {
           <div className={`size-5 sm:size-6 rounded-lg flex items-center justify-center border shadow-sm ${
             isAI ? 'bg-[#00D18F]/10 border-[#00D18F]/20 text-[#00D18F]' : 'bg-white/5 border-white/5 text-zinc-500'
           }`}>
-            {isAI ? <Bot size={10} className="sm:size-[12px]" /> : <User size={10} className="sm:size-[12px]" />}
+            {isAI ? <Bot className="size-2.5 sm:size-3" /> : <User className="size-2.5 sm:size-3" />}
           </div>
           <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-zinc-500">
             {getSenderLabel()}
@@ -38,7 +38,7 @@ const MessageBubble = ({ message, senderType }) => {
           
           {isOwner && (
             <div className="absolute -bottom-4 sm:-bottom-5 right-1 sm:right-2 flex items-center gap-1 opacity-40">
-               <Check size={8} sm:size={10} className="text-[#00D18F]" />
+                <Check className="size-2 sm:size-2.5 text-[#00D18F]" />
                <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-[#00D18F]">Delivered</span>
             </div>
           )}
