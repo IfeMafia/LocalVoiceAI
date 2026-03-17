@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect, use } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,9 +8,11 @@ import ConversationHeader from '@/components/conversation/ConversationHeader';
 import MessageList from '@/components/conversation/MessageList';
 import MessageInput from '@/components/conversation/MessageInput';
 import { Loader2 } from 'lucide-react';
+import { notFound } from 'next/navigation';
 
-export default function ConversationPage() {
-  const { conversationId } = useParams();
+export default function ConversationPage({ params }) {
+  const resolvedParams = use(params);
+  const { customerSlug } = resolvedParams;
   const { user } = useAuth();
   
   const [loading, setLoading] = useState(true);
@@ -21,32 +22,32 @@ export default function ConversationPage() {
   const [isAiTyping, setIsAiTyping] = useState(false);
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!customerSlug || !user) return;
 
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // 1. Fetch Conversation Details via API (for name resolution)
-        const convRes = await fetch(`/api/conversations?conversationId=${conversationId}`);
+        // 1. Fetch Conversations to find the one with this customerSlug
+        const convRes = await fetch(`/api/conversations`);
         const convData = await convRes.json();
         
-        if (convData.success && convData.conversations.length > 0) {
-          setConversation(convData.conversations[0]);
-        } else {
-          throw new Error('Conversation not found');
+        if (convData.success) {
+          const found = convData.conversations.find(c => c.customer_slug === customerSlug);
+          if (found) {
+            setConversation(found);
+            
+            // 2. Fetch Messages for this conversation
+            const msgRes = await fetch(`/api/conversations/${found.id}/messages`);
+            const msgData = await msgRes.json();
+            
+            if (msgData.success) {
+              setMessages(msgData.messages || []);
+            }
+          } else {
+            setConversation(false); // Trigger notFound
+          }
         }
-
-        // 2. Fetch Messages via API route
-        const res = await fetch(`/api/conversations/${conversationId}/messages`);
-        const data = await res.json();
-        
-        if (data.success) {
-          setMessages(data.messages || []);
-        } else {
-          console.error('Failed to fetch messages:', data.error);
-        }
-
       } catch (error) {
         console.error('Error fetching conversation:', error);
       } finally {
@@ -55,13 +56,15 @@ export default function ConversationPage() {
     };
 
     fetchData();
+  }, [customerSlug, user]);
 
-    // 3. Subscribe to Realtime Updates
+  // Realtime subscription logic
+  useEffect(() => {
+    if (!conversation?.id) return;
+
     const channel = supabase
-      .channel(`chat:${conversationId}`, {
-        config: {
-          broadcast: { self: false }
-        }
+      .channel(`chat:${conversation.id}`, {
+        config: { broadcast: { self: false } }
       })
       .on(
         'postgres_changes',
@@ -69,18 +72,14 @@ export default function ConversationPage() {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
+          filter: `conversation_id=eq.${conversation.id}`
         },
         (payload) => {
           setMessages((prev) => {
-            // Check if we already have this message (optimistic UI)
             if (prev.find(m => m.id === payload.new.id)) return prev;
             return [...prev, payload.new];
           });
-          
-          if (payload.new.sender_type === 'ai') {
-            setIsAiTyping(false);
-          }
+          if (payload.new.sender_type === 'ai') setIsAiTyping(false);
         }
       )
       .on('broadcast', { event: 'typing' }, (payload) => {
@@ -92,10 +91,10 @@ export default function ConversationPage() {
           event: 'UPDATE',
           schema: 'public',
           table: 'conversations',
-          filter: `id=eq.${conversationId}`
+          filter: `id=eq.${conversation.id}`
         },
         (payload) => {
-          setConversation(payload.new);
+          setConversation(prev => ({ ...prev, ...payload.new }));
         }
       )
       .subscribe();
@@ -103,19 +102,18 @@ export default function ConversationPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversation?.id]);
 
   const handleSendMessage = async (content) => {
-    if (!user || !conversationId || !content.trim()) return;
+    if (!user || !conversation?.id || !content.trim()) return;
     
     try {
       setSending(true);
 
-      // Optimistic Update
       const tempId = 'temp-' + Date.now();
       const newMessage = {
         id: tempId,
-        conversation_id: conversationId,
+        conversation_id: conversation.id,
         sender_type: 'owner',
         content: content,
         created_at: new Date().toISOString()
@@ -123,8 +121,7 @@ export default function ConversationPage() {
       
       setMessages(prev => [...prev, newMessage]);
 
-      // 1. Insert message via API
-      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+      const res = await fetch(`/api/conversations/${conversation.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, senderType: 'owner' })
@@ -133,20 +130,15 @@ export default function ConversationPage() {
       const data = await res.json();
 
       if (data.success && data.message) {
-        // Swap temp ID with actual DB ID
         setMessages(prev => prev.map(m => m.id === tempId ? data.message : m));
       } else {
         throw new Error(data.error || 'Failed to send');
       }
 
-      // 2. Update conversation status locally (API already updates updated_at)
-      // If we want status to change to owner replied, the API route currently doesn't do that,
-      // but conceptually we could.
       setConversation(prev => ({ ...prev, status: 'Active' }));
 
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove optimistic message on error
       setMessages(prev => prev.filter(m => !m.id?.toString().startsWith('temp-')));
     } finally {
       setSending(false);
@@ -163,24 +155,17 @@ export default function ConversationPage() {
     );
   }
 
-  if (!conversation) {
-    return (
-      <DashboardLayout title="Error">
-        <div className="flex flex-col items-center justify-center h-[70vh] text-zinc-500">
-          <h2 className="text-xl font-bold text-white mb-2">Conversation not found</h2>
-          <p>The conversation may have been deleted or you don't have access.</p>
-        </div>
-      </DashboardLayout>
-    );
+  if (conversation === false) {
+    notFound();
   }
 
   return (
-    <DashboardLayout title={`Chat with ${conversation.customer_name || 'Customer'}`}>
+    <DashboardLayout title={`Chat with ${conversation?.customer_name || 'Customer'}`}>
       <div className="flex flex-col h-[calc(100vh-140px)] bg-black rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
         <ConversationHeader 
-          customerName={conversation.customer_name}
-          status={conversation.status}
-          startTime={conversation.created_at}
+          customerName={conversation?.customer_name}
+          status={conversation?.status}
+          startTime={conversation?.created_at}
         />
         
         <MessageList messages={messages} isTyping={isAiTyping} />

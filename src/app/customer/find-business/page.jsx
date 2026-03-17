@@ -145,7 +145,7 @@ export default function FindBusinessPage() {
                       <button className="p-2 sm:p-2.5 bg-white/[0.03] rounded-lg sm:rounded-xl text-zinc-400 hover:text-white transition-all border border-white/5">
                         <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
-                      <Link href={`/customer/chat/${business.id}`}>
+                      <Link href={`/customer/chat/${business.slug}`}>
                         <Button className="bg-[#00D18F]/5 hover:bg-[#00D18F]/10 text-[#00D18F] border border-[#00D18F]/20 rounded-lg sm:rounded-xl px-3 sm:px-5 h-9 sm:h-11 text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all">
                           <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                           Chat

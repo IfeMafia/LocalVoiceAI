@@ -33,7 +33,7 @@ const RecentConversations = ({ conversations }) => {
           conversations.map((conv) => (
             <Link 
               key={conv.id} 
-              href={`/business/conversation/${conv.id}`}
+              href={`/business/conversation/${conv.customer_slug}`}
               className="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-all group"
             >
               <div className="flex items-center gap-4 min-w-0">

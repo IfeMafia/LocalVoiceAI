@@ -17,7 +17,7 @@ export async function GET(req) {
     if (user.role === 'customer') {
       if (conversationId) {
         result = await db.query(
-          `SELECT c.*, b.name AS business_name,
+          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
                   lm.created_at AS last_message_at
            FROM conversations c
@@ -35,7 +35,7 @@ export async function GET(req) {
         );
       } else if (businessId) {
         result = await db.query(
-          `SELECT c.*, b.name AS business_name,
+          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
                   lm.created_at AS last_message_at
            FROM conversations c
@@ -54,7 +54,7 @@ export async function GET(req) {
         );
       } else {
         result = await db.query(
-          `SELECT c.*, b.name AS business_name,
+          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
                   lm.created_at AS last_message_at
            FROM conversations c
@@ -73,8 +73,8 @@ export async function GET(req) {
       }
     } else {
       let query = `
-        SELECT c.*, b.name as business_name,
-               u.name as actual_customer_name,
+        SELECT c.*, b.name as business_name, b.slug as business_slug,
+               u.name as actual_customer_name, u.slug as customer_slug,
                lm.content AS last_message,
                lm.created_at AS last_message_at
         FROM conversations c

@@ -83,7 +83,7 @@ export default function ConversationsPage() {
               conversations.map((conv) => (
                 <Link 
                   key={conv.id} 
-                  href={`/business/conversation/${conv.id}`}
+                  href={`/business/conversation/${conv.customer_slug}`}
                   className="p-8 hover:bg-white/[0.01] transition-all cursor-pointer group flex items-center justify-between gap-6"
                 >
                   <div className="flex items-center gap-6 min-w-0 flex-1">

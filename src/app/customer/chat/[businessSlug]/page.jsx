@@ -10,44 +10,36 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function BusinessChatPage({ params }) {
   const resolvedParams = use(params);
-  const { businessId: routeId } = resolvedParams;
+  const { businessSlug } = resolvedParams;
   const { user } = useAuth();
   const [business, setBusiness] = useState(null);
   const [initialConversationId, setInitialConversationId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBusiness = async () => {
+    const fetchBusinessAndConversation = async () => {
       try {
         setLoading(true);
-        // 1. Try to resolve the route id as a conversation id first.
-        const convRes = await fetch(`/api/conversations?conversationId=${routeId}`);
-        const convData = await convRes.json();
-        if (convData.success && convData.conversations?.length > 0) {
-          const existingConversation = convData.conversations[0];
-          setInitialConversationId(existingConversation.id);
-
-          const res = await fetch('/api/businesses?public=true');
-          const data = await res.json();
-          if (data.success) {
-            const foundBusiness = data.businesses.find(b => b.id === existingConversation.business_id);
-            if (foundBusiness) {
-              setBusiness(foundBusiness);
-              return;
+        
+        // 1. Fetch business by slug
+        const busRes = await fetch('/api/businesses?public=true');
+        const busData = await busRes.json();
+        
+        if (busData.success) {
+          const foundBusiness = busData.businesses.find(b => b.slug === businessSlug);
+          if (foundBusiness) {
+            setBusiness(foundBusiness);
+            
+            // 2. Fetch existing conversation for this business and logged-in user
+            if (user) {
+              const convRes = await fetch(`/api/conversations?businessId=${foundBusiness.id}`);
+              const convData = await convRes.json();
+              if (convData.success && convData.conversations?.length > 0) {
+                setInitialConversationId(convData.conversations[0].id);
+              }
             }
-          }
-        }
-
-        // 2. Fallback: treat route id as business id (first-time chat).
-        const res = await fetch('/api/businesses?public=true');
-        const data = await res.json();
-        if (data.success) {
-          const found = data.businesses.find(b => b.id === routeId);
-          if (found) {
-            setBusiness(found);
-            setInitialConversationId(null);
           } else {
-            setBusiness(false);
+            setBusiness(false); // Trigger notFound
           }
         }
       } catch (err) {
@@ -58,8 +50,10 @@ export default function BusinessChatPage({ params }) {
       }
     };
 
-    fetchBusiness();
-  }, [routeId]);
+    if (businessSlug) {
+      fetchBusinessAndConversation();
+    }
+  }, [businessSlug, user]);
 
   if (loading) {
     return (

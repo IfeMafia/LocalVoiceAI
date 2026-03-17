@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hashPassword, generateToken, setAuthCookie } from '@/lib/auth';
 import db from '@/lib/db';
+import { getUniqueSlug } from '@/lib/utils';
 
 export async function POST(req) {
   try {
@@ -26,10 +27,13 @@ export async function POST(req) {
     // 3. Hash password
     const passwordHash = await hashPassword(password);
 
-    // 4. Create user
+    // 4. Generate unique slug
+    const slug = await getUniqueSlug('users', name || email.split('@')[0], db);
+
+    // 5. Create user
     const result = await db.query(
-      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-      [name, email, passwordHash, role]
+      'INSERT INTO users (name, email, password_hash, role, slug) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, role, slug',
+      [name, email, passwordHash, role, slug]
     );
 
     const newUser = result.rows[0];
