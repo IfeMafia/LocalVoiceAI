@@ -17,7 +17,7 @@ export async function GET(req) {
     if (user.role === 'customer') {
       if (conversationId) {
         result = await db.query(
-          `SELECT c.*, b.name AS business_name,
+          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
                   lm.created_at AS last_message_at
            FROM conversations c
@@ -35,7 +35,7 @@ export async function GET(req) {
         );
       } else if (businessId) {
         result = await db.query(
-          `SELECT c.*, b.name AS business_name,
+          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
                   lm.created_at AS last_message_at
            FROM conversations c
@@ -54,7 +54,7 @@ export async function GET(req) {
         );
       } else {
         result = await db.query(
-          `SELECT c.*, b.name AS business_name,
+          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
                   lm.created_at AS last_message_at
            FROM conversations c
@@ -72,23 +72,38 @@ export async function GET(req) {
         );
       }
     } else {
-      result = await db.query(
-        `SELECT c.*, b.name as business_name,
-                lm.content AS last_message,
-                lm.created_at AS last_message_at
-         FROM conversations c
-         JOIN businesses b ON c.business_id = b.id
-         LEFT JOIN LATERAL (
-           SELECT content, created_at
-           FROM messages
-           WHERE conversation_id = c.id
-           ORDER BY created_at DESC
-           LIMIT 1
-         ) lm ON TRUE
-         WHERE b.owner_id = $1
-         ORDER BY COALESCE(lm.created_at, c.created_at) DESC`,
-        [user.id]
-      );
+      let query = `
+        SELECT c.*, b.name as business_name, b.slug as business_slug,
+               u.name as actual_customer_name, u.slug as customer_slug,
+               lm.content AS last_message,
+               lm.created_at AS last_message_at
+        FROM conversations c
+        JOIN businesses b ON c.business_id = b.id
+        LEFT JOIN users u ON c.customer_id = u.id
+        LEFT JOIN LATERAL (
+          SELECT content, created_at
+          FROM messages
+          WHERE conversation_id = c.id
+          ORDER BY created_at DESC
+          LIMIT 1
+        ) lm ON TRUE
+        WHERE b.owner_id = $1
+      `;
+      const params = [user.id];
+
+      if (conversationId) {
+        query += ` AND c.id = $2`;
+        params.push(conversationId);
+      }
+
+      query += ` ORDER BY COALESCE(lm.created_at, c.created_at) DESC`;
+      
+      result = await db.query(query, params);
+      
+      result.rows = result.rows.map(conv => ({
+        ...conv,
+        customer_name: conv.actual_customer_name || conv.customer_name || 'Guest'
+      }));
     }
 
     return NextResponse.json({ success: true, conversations: result.rows });

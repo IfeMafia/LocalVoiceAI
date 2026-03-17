@@ -38,13 +38,32 @@ export async function GET(req) {
       ownerInterventions: parseInt(ownerIntRes.rows[0].count) || 0
     };
 
-    // 3. Fetch Recent Conversations
+    // 3. Fetch Recent Conversations with last message and customer name
     const recentRes = await db.query(
-      'SELECT * FROM conversations WHERE business_id = $1 ORDER BY created_at DESC LIMIT 10',
+      `SELECT 
+        c.*, 
+        u.name as actual_customer_name,
+        lm.content as last_message,
+        lm.created_at as last_message_at
+       FROM conversations c
+       LEFT JOIN users u ON c.customer_id = u.id
+       LEFT JOIN LATERAL (
+         SELECT content, created_at
+         FROM messages
+         WHERE conversation_id = c.id
+         ORDER BY created_at DESC
+         LIMIT 1
+       ) lm ON TRUE
+       WHERE c.business_id = $1 
+       ORDER BY c.created_at DESC 
+       LIMIT 10`,
       [bizId]
     );
 
-    const conversations = recentRes.rows;
+    const conversations = recentRes.rows.map(conv => ({
+      ...conv,
+      customer_name: conv.actual_customer_name || conv.customer_name || 'Guest'
+    }));
 
     // 4. Fetch Chart Data
     let days = 7;

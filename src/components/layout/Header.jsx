@@ -1,7 +1,8 @@
-import { Bell, Menu, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, Menu } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
-export default function Header({ title, onMenuClick }) {
+export default function Header({ title, onMenuClick, businessLogo }) {
   return (
     <header className="h-16 border-b border-zinc-100 dark:border-white/5 bg-white/80 dark:bg-black/80 backdrop-blur-3xl flex items-center justify-between px-6 sm:px-10 sticky top-0 z-50 transition-all duration-500">
       <div className="flex items-center gap-6">
@@ -23,13 +24,16 @@ export default function Header({ title, onMenuClick }) {
           <Bell className="w-6 h-6" />
         </button>
         
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-white/10 flex-shrink-0 shadow-sm group cursor-pointer transition-all duration-300">
+        <Link 
+          href="/business/profile"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-white/10 flex-shrink-0 shadow-sm group cursor-pointer transition-all duration-300 hover:border-[#00D18F]/30"
+        >
           <img 
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Samkiel" 
-            alt="User" 
+            src={businessLogo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Samkiel"} 
+            alt="Business Logo" 
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
           />
-        </div>
+        </Link>
       </div>
     </header>
   );

@@ -19,6 +19,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LOGIN_CONTENT } from '@/landing/loginData';
 import { AuthBranding, AuthAlternativeAction, MobileAuthHeader } from '@/components/layout/AuthLayout';
 import { Suspense } from 'react';
+import Navbar from '@/landing/sections/Navbar';
 
 function LoginContent() {
   const router = useRouter();
@@ -32,17 +33,6 @@ function LoginContent() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
-  // Centralized redirect logic
-  useEffect(() => {
-    if (user) {
-      const routes = {
-        customer: '/customer/chat',
-        admin: '/lighthouse/dashboard'
-      };
-      router.push(routes[user.role] || '/business/dashboard');
-    }
-  }, [user, router]);
-
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
@@ -51,16 +41,27 @@ function LoginContent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(formData);
+      const data = await login(formData);
+      if (data?.success && data?.user) {
+        const routes = {
+          customer: '/customer/chat',
+          business: '/business/dashboard',
+          admin: '/lighthouse/dashboard'
+        };
+        const target = routes[data.user.role] || routes.business;
+        router.push(target);
+      }
     } catch (err) {
       // Error is gracefully handled by the useAuth hook/toast
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] flex flex-col lg:flex-row text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
+    <div className="min-h-screen bg-[#000000] flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
+      <Navbar />
       
-      {/* High Cohesion Branding Column */}
+      <div className="flex-1 flex flex-col lg:flex-row pt-16 lg:pt-0">
+        {/* High Cohesion Branding Column */}
       <AuthBranding>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A0A0A] border border-voxy-border mb-6">
           {LOGIN_CONTENT.badge.icon}
@@ -202,6 +203,7 @@ function LoginContent() {
         </div>
       </div>
 
+      </div>
     </div>
   );
 }

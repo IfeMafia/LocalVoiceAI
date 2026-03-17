@@ -1,12 +1,53 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Search, Filter, Languages, Volume2, ChevronRight, MessageSquare, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function ConversationsPage() {
-  const [conversations] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/conversations');
+        const data = await res.json();
+        if (data.success) {
+          setConversations(data.conversations.map(c => ({
+            ...c,
+            name: c.customer_name || 'Guest',
+            snippet: c.last_message || 'No messages yet',
+            time: c.last_message_at 
+              ? new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            language: 'English', // Default for now
+            sentiment: 'Neutral', // Default for now
+            statusColor: c.status === 'Needs Owner Response' ? 'bg-amber-500/10 text-amber-500' : 'bg-[#00D18F]/10 text-[#00D18F]'
+          })));
+        }
+      } catch (err) {
+        console.error('Error fetching conversations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConversations();
+  }, []);
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Conversations">
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00D18F]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout title="Conversations">
@@ -40,12 +81,16 @@ export default function ConversationsPage() {
           <div className="divide-y divide-white/[0.03]">
             {conversations.length > 0 ? (
               conversations.map((conv) => (
-                <div key={conv.id} className="p-8 hover:bg-white/[0.01] transition-all cursor-pointer group flex items-center justify-between gap-6">
+                <Link 
+                  key={conv.id} 
+                  href={`/business/conversation/${conv.customer_slug}`}
+                  className="p-8 hover:bg-white/[0.01] transition-all cursor-pointer group flex items-center justify-between gap-6"
+                >
                   <div className="flex items-center gap-6 min-w-0 flex-1">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
-                      <div className="size-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center text-zinc-400 font-black text-xl border border-white/5">
-                        {conv.name.charAt(0)}
+                      <div className="size-16 rounded-2xl bg-[#00D18F]/10 flex items-center justify-center text-[#00D18F] font-black text-xl border border-[#00D18F]/10">
+                        {(conv.name || 'C').charAt(0)}
                       </div>
                       <div className="absolute -bottom-1 -right-1 p-1 bg-[#111111] rounded-lg">
                         <Volume2 className="w-3.5 h-3.5 text-[#00D18F]" />
@@ -86,7 +131,7 @@ export default function ConversationsPage() {
                     </div>
                     <ChevronRight className="w-6 h-6 text-zinc-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               <div className="p-20 text-center space-y-4">

@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { SIGNUP_CONTENT } from '@/landing/signupData';
 import { usePasswordValidation } from '@/hooks/usePasswordValidation';
 import { AuthBranding, AuthAlternativeAction, MobileAuthHeader } from '@/components/layout/AuthLayout';
+import Navbar from '@/landing/sections/Navbar';
 
 export default function Signup() {
   const router = useRouter();
@@ -62,9 +63,11 @@ export default function Signup() {
   const currentContent = SIGNUP_CONTENT[role];
 
   return (
-    <div className="min-h-screen bg-[#000000] flex flex-col lg:flex-row text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
+    <div className="min-h-screen bg-[#000000] flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
+      <Navbar />
       
-      {/* Left Column */}
+      <div className="flex-1 flex flex-col lg:flex-row pt-16 lg:pt-0">
+        {/* Left Column */}
       <AuthBranding>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A0A0A] border border-voxy-border mb-6">
           <div className="w-1.5 h-1.5 rounded-full bg-voxy-primary"></div>
@@ -115,8 +118,8 @@ export default function Signup() {
           {/* Role Switching Tabs */}
           <div className="flex bg-[#141414] p-1 rounded-lg mb-8 border border-voxy-border">
             <button 
-              onClick={() => setRole('business_owner')}
-              className={`flex-1 text-sm font-medium py-2 rounded-md transition-all flex items-center justify-center gap-2 ${role === 'business_owner' ? 'bg-[#222222] text-voxy-text shadow-sm' : 'text-voxy-muted hover:text-voxy-text'}`}
+              onClick={() => setRole('business')}
+              className={`flex-1 text-sm font-medium py-2 rounded-md transition-all flex items-center justify-center gap-2 ${role === 'business' ? 'bg-[#222222] text-voxy-text shadow-sm' : 'text-voxy-muted hover:text-voxy-text'}`}
             >
               <Building2 size={16} /> Business
             </button>
@@ -131,10 +134,10 @@ export default function Signup() {
           <form className="space-y-5 mb-8" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="name" className="text-xs text-voxy-muted uppercase tracking-wider">
-                {role === 'business_owner' ? 'Company Name' : 'Full Name'}
+                {role === 'business' ? 'Company Name' : 'Full Name'}
               </Label>
               <div className="relative">
-                {role === 'business_owner' ? (
+                {role === 'business' ? (
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-voxy-muted" size={16} />
                 ) : (
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-voxy-muted" size={16} />
@@ -143,7 +146,7 @@ export default function Signup() {
                   id="name" 
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder={role === 'business_owner' ? "Acme Corp" : "Jane Doe"} 
+                  placeholder={role === 'business' ? "Acme Corp" : "Jane Doe"} 
                   className="pl-10 bg-[#141414] border-transparent focus:border-voxy-primary/50 h-11" 
                   required 
                 />
@@ -152,7 +155,7 @@ export default function Signup() {
             
             <div className="space-y-2">
               <Label htmlFor="email" className="text-xs text-voxy-muted uppercase tracking-wider">
-                {role === 'business_owner' ? 'Work Email' : 'Email Address'}
+                {role === 'business' ? 'Work Email' : 'Email Address'}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-voxy-muted" size={16} />
@@ -161,7 +164,7 @@ export default function Signup() {
                   type="email" 
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder={role === 'business_owner' ? "work@company.com" : "jane@example.com"} 
+                  placeholder={role === 'business' ? "work@company.com" : "jane@example.com"} 
                   className="pl-10 bg-[#141414] border-transparent focus:border-voxy-primary/50 h-11" 
                   required 
                 />
@@ -202,7 +205,7 @@ export default function Signup() {
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin mx-auto" />
               ) : (
-                <>Create {role === 'business_owner' ? 'Business' : 'Customer'} Account</>
+                <>Create {role === 'business' ? 'Business' : 'Customer'} Account</>
               )}
             </Button>
           </form>
@@ -221,6 +224,7 @@ export default function Signup() {
           />
         </div>
       </div>
+    </div>
     </div>
   );
 }

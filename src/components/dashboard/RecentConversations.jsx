@@ -16,6 +16,13 @@ const RecentConversations = ({ conversations }) => {
     }
   };
 
+  const formatName = (name) => {
+    if (!name) return 'Anonymous';
+    return name.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
   return (
     <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
       <div className="p-4 sm:p-6 border-b border-white/[0.03] flex items-center justify-between">
@@ -33,19 +40,19 @@ const RecentConversations = ({ conversations }) => {
           conversations.map((conv) => (
             <Link 
               key={conv.id} 
-              href={`/business/conversation/${conv.id}`}
+              href={`/business/conversation/${conv.customer_slug}`}
               className="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-all group"
             >
               <div className="flex items-center gap-4 min-w-0">
                 <div className="relative flex-shrink-0">
                   <div className="size-12 rounded-xl bg-[#00D18F]/10 flex items-center justify-center text-[#00D18F] font-bold text-lg border border-[#00D18F]/10">
-                    {conv.customer_name?.charAt(0) || 'C'}
+                    {formatName(conv.customer_name).charAt(0)}
                   </div>
                 </div>
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
-                    <span className="text-white font-semibold text-sm tracking-tight truncate">{conv.customer_name || 'Anonymous'}</span>
+                    <span className="text-white font-semibold text-sm tracking-tight truncate">{formatName(conv.customer_name)}</span>
                     {getStatusBadge(conv.status)}
                   </div>
                   <p className="text-zinc-500 text-xs truncate max-w-[200px] sm:max-w-md mt-1">

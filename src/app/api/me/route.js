@@ -13,9 +13,12 @@ export async function GET() {
       );
     }
 
-    // Optional: Fetch fresh user data from DB to ensure name/role are current
+    // Fetch user data and join with businesses if they are a business owner
     const result = await db.query(
-      'SELECT id, name, email, role FROM users WHERE id = $1',
+      `SELECT u.id, u.name, u.email, u.role, b.id as business_id, b.logo_url
+       FROM users u
+       LEFT JOIN businesses b ON b.owner_id = u.id
+       WHERE u.id = $1`,
       [payload.id]
     );
 
@@ -26,9 +29,25 @@ export async function GET() {
       );
     }
 
+    const userData = result.rows[0];
+    const user = {
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      role: userData.role
+    };
+
+    // If it's a business owner, nest the business details
+    if (userData.role === 'business' || userData.role === 'business_owner' || userData.business_id) {
+      user.business = {
+        id: userData.business_id,
+        logo_url: userData.logo_url
+      };
+    }
+
     return NextResponse.json({
       success: true,
-      user: result.rows[0]
+      user
     });
 
   } catch (error) {

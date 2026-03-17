@@ -73,30 +73,7 @@ export const getUserFromCookie = async () => {
   return verifyToken(token);
 };
 
-// --- Compatibility for Supabase-style Auth ---
-
-/**
- * Sign in using Supabase Auth
- */
-export const signIn = async (email, password) => {
-  return await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-};
-
-/**
- * Sign up using Supabase Auth
- */
-export const signUp = async (email, password, metadata = {}) => {
-  return await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: metadata,
-    },
-  });
-};
+// --- User Helpers ---
 
 /**
  * Alias for getUserFromCookie

@@ -12,9 +12,9 @@ export default function CustomerChatHistoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchConversations = async () => {
+    const fetchConversations = async (isInitial = false) => {
       try {
-        setLoading(true);
+        if (isInitial) setLoading(true);
         const res = await fetch('/api/conversations');
         const data = await res.json();
         if (data.success) {
@@ -23,13 +23,13 @@ export default function CustomerChatHistoryPage() {
       } catch (err) {
         console.error('Fetch error:', err);
       } finally {
-        setLoading(false);
+        if (isInitial) setLoading(false);
       }
     };
 
-    fetchConversations();
+    fetchConversations(true);
 
-    const intervalId = setInterval(fetchConversations, 10000);
+    const intervalId = setInterval(() => fetchConversations(false), 10000);
     window.addEventListener('focus', fetchConversations);
 
     return () => {
@@ -64,7 +64,7 @@ export default function CustomerChatHistoryPage() {
             </div>
           ) : conversations.length > 0 ? (
             conversations.map((chat, idx) => (
-              <Link key={chat.id} href={`/customer/chat/${chat.id}`}>
+              <Link key={chat.id} href={`/customer/chat/${chat.business_slug}`}>
                 <div 
                   className="group relative bg-white dark:bg-[#18181b] border border-zinc-100 dark:border-white/5 rounded-[2.5rem] p-6 md:p-8 hover:border-[#00D18F]/30 shadow-sm hover:shadow-2xl hover:shadow-[#00D18F]/5 transition-all duration-500 cursor-pointer animate-in fade-in slide-in-from-bottom-4"
                   style={{ animationDelay: `${idx * 150}ms` }}

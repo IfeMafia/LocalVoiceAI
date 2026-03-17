@@ -16,10 +16,14 @@ const MessageBubble = ({ message, senderType }) => {
     <div className={`flex flex-col mb-6 sm:mb-10 group ${isOwner ? 'items-end' : 'items-start'}`}>
       <div className={`flex flex-col max-w-[90%] sm:max-w-[75%] ${isOwner ? 'items-end' : 'items-start'}`}>
         <div className={`flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2 px-1 sm:px-2 opacity-60 group-hover:opacity-100 transition-opacity duration-500 ${isOwner ? 'flex-row-reverse' : ''}`}>
-          <div className={`size-5 sm:size-6 rounded-lg flex items-center justify-center border shadow-sm ${
+          <div className={`size-5 sm:size-6 rounded-lg flex items-center justify-center border shadow-sm overflow-hidden ${
             isAI ? 'bg-[#00D18F]/10 border-[#00D18F]/20 text-[#00D18F]' : 'bg-white/5 border-white/5 text-zinc-500'
           }`}>
-            {isAI ? <Bot className="size-2.5 sm:size-3" /> : <User className="size-2.5 sm:size-3" />}
+            {isAI ? (
+              <img src="/favicon.jpg" alt="Voxy AI" className="size-full object-cover" />
+            ) : (
+              <User className="size-2.5 sm:size-3" />
+            )}
           </div>
           <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-zinc-500">
             {getSenderLabel()}

@@ -37,6 +37,8 @@ export default function ChatInterface({ business, userName }) {
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId, setConversationId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isBusinessOnline, setIsBusinessOnline] = useState(false);
+  const [typingUser, setTypingUser] = useState(null); // 'ai' or 'owner' or null
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -74,7 +76,7 @@ export default function ChatInterface({ business, userName }) {
               status: 'read'
             })));
           } else {
-            const welcome = `Welcome to ${business.name}! I'm your AI concierge. I can help you with bookings, product inquiries, or general support in any language. How can I assist you today?`;
+            const welcome = `Welcome to ${business.name}! I'm VOXY AI. I can help you with bookings, product inquiries, or general support in any language. How can I assist you today?`;
             setMessages([{
               id: 'welcome',
               role: 'ai',
@@ -98,7 +100,11 @@ export default function ChatInterface({ business, userName }) {
     if (!conversationId) return;
 
     const channel = supabase
-      .channel(`chat:${conversationId}`)
+      .channel(`chat:${conversationId}`, {
+        config: {
+          broadcast: { self: false }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -111,6 +117,23 @@ export default function ChatInterface({ business, userName }) {
           const newMessage = payload.new;
           setMessages(prev => {
             if (prev.find(m => m.id === newMessage.id)) return prev;
+            
+            const tempMatch = prev.find(m => 
+              m.id?.toString().startsWith('temp-') && 
+              m.content === newMessage.content && 
+              m.role === newMessage.sender_type
+            );
+
+            if (tempMatch) {
+              return prev.map(m => m.id === tempMatch.id ? {
+                id: newMessage.id,
+                role: newMessage.sender_type,
+                content: newMessage.content,
+                timestamp: new Date(newMessage.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'read'
+              } : m);
+            }
+
             return [...prev, {
               id: newMessage.id,
               role: newMessage.sender_type,
@@ -120,16 +143,41 @@ export default function ChatInterface({ business, userName }) {
             }];
           });
           if (newMessage.sender_type !== 'customer') {
-            setIsTyping(false);
+            setTypingUser(null);
           }
         }
       )
-      .subscribe();
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (payload.payload.isTyping) {
+          setTypingUser(payload.payload.senderType);
+        } else {
+          setTypingUser(null);
+        }
+      })
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const online = Object.values(state).flat().some(p => p.role === 'business');
+        setIsBusinessOnline(online);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ online_at: new Date().toISOString(), role: 'customer' });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [conversationId]);
+
+  const handleTyping = (isTyping) => {
+    if (!conversationId) return;
+    supabase.channel(`chat:${conversationId}`).send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { isTyping, senderType: 'customer' }
+    });
+  };
 
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
@@ -137,9 +185,13 @@ export default function ChatInterface({ business, userName }) {
 
     const text = inputValue;
     setInputValue("");
+    handleTyping(false);
+
+    // Get the channel to broadcast
+    const channel = supabase.channel(`chat:${conversationId}`);
 
     try {
-      const tempId = Date.now().toString();
+      const tempId = 'temp-' + Date.now();
       setMessages(prev => [...prev, {
         id: tempId,
         role: 'customer',
@@ -162,17 +214,50 @@ export default function ChatInterface({ business, userName }) {
           status: 'sent'
         } : m));
 
-        setIsTyping(true);
+        setTypingUser('ai');
+        // Broadcast AI is typing
+        channel.send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: { isTyping: true, senderType: 'customer' } // Broadcast to others that AI (triggered by customer) might be processing
+        });
+
         try {
-          await fetch('/api/assistant/chat', {
+          const aiRes = await fetch('/api/assistant/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ conversationId })
           });
+          const aiData = await aiRes.json();
+          
+          if (aiData.success && aiData.message) {
+            // Add the AI message directly if it's not already there from Realtime
+            const aiMsg = aiData.message;
+            setMessages(prev => {
+              if (prev.find(m => m.id === aiMsg.id)) return prev;
+              
+              // Remove temp AI typing if any
+              setTypingUser(null);
+
+              return [...prev, {
+                id: aiMsg.id,
+                role: aiMsg.sender_type,
+                content: aiMsg.content,
+                timestamp: new Date(aiMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'read'
+              }];
+            });
+          }
         } catch (err) {
           console.error('AI error:', err);
         } finally {
-          setIsTyping(false);
+          setTypingUser(null);
+          // Broadcast AI stopped typing
+          channel.send({
+            type: 'broadcast',
+            event: 'typing',
+            payload: { isTyping: false, senderType: 'customer' }
+          });
         }
       }
     } catch (err) {
@@ -217,8 +302,8 @@ export default function ChatInterface({ business, userName }) {
             className="flex items-center gap-3 sm:gap-5 group cursor-pointer"
           >
             <div className="relative">
-              <div className="size-12 sm:size-16 rounded-xl sm:rounded-2xl bg-[#00D18F]/10 flex items-center justify-center text-[#00D18F] font-bold text-xl sm:text-2xl border border-[#00D18F]/10 shadow-sm transition-transform duration-500">
-                <Bot className="w-6 h-6 sm:w-8 sm:h-8" />
+              <div className="size-12 sm:size-16 rounded-xl sm:rounded-2xl bg-[#00D18F]/10 flex items-center justify-center border border-[#00D18F]/10 shadow-sm transition-transform duration-500 overflow-hidden">
+                <img src={business?.logo_url || "/favicon.jpg"} alt={business?.name || "Voxy AI"} className="size-full object-cover" />
               </div>
               <div className="absolute -bottom-1 -right-1 p-0.5 sm:p-1 bg-black rounded-lg border border-white/5">
                 <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 text-[#00D18F]" />
@@ -229,11 +314,10 @@ export default function ChatInterface({ business, userName }) {
                 <h2 className="font-display font-bold text-lg sm:text-2xl text-white group-hover:text-[#00D18F] transition-colors tracking-tight leading-tight truncate max-w-[120px] sm:max-w-none">
                   {business?.name || "Merchant"}
                 </h2>
-                <Badge className="bg-[#00D18F]/10 text-[#00D18F] border-none text-[7px] sm:text-[8px] py-0.5 sm:py-1 px-1.5 sm:px-2.5 font-black tracking-widest uppercase rounded-lg">Concierge</Badge>
               </div>
               <p className="text-[8px] sm:text-[10px] text-zinc-500 flex items-center gap-1.5 sm:gap-2 font-black uppercase tracking-widest mt-0.5 sm:mt-1 opacity-60">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00D18F] shadow-[0_0_8px_#00D18F]"></span>
-                Online
+                <span className={`w-1.5 h-1.5 rounded-full ${isBusinessOnline ? 'bg-[#00D18F] shadow-[0_0_8px_#00D18F]' : 'bg-zinc-700'}`}></span>
+                {isBusinessOnline ? 'Online' : 'Away'}
               </p>
             </div>
           </Link>
@@ -253,19 +337,32 @@ export default function ChatInterface({ business, userName }) {
             className={`flex ${msg.role === "customer" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-4 duration-700`}
           >
             <div className={`flex gap-3 sm:gap-5 max-w-[90%] sm:max-w-[75%] ${msg.role === "customer" ? "flex-row-reverse" : "flex-row"}`}>
-              <div className={`size-8 sm:size-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center border shadow-xl ${
+              <div className={`size-8 sm:size-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center border shadow-xl overflow-hidden ${
                 msg.role === "ai" || msg.role === "owner"
                   ? "bg-[#00D18F]/5 border-[#00D18F]/20 text-[#00D18F]"
                   : "bg-white/5 border-white/5 text-zinc-500"
               }`}>
-                {msg.role === "ai" ? <Sparkles className="size-3.5 sm:size-4" /> : <User className="size-3.5 sm:size-4" />}
+                {msg.role === "ai" ? (
+                  <img src="/favicon.jpg" alt="Voxy AI" className="size-full object-cover" />
+                ) : msg.role === "owner" ? (
+                  <img src={business?.logo_url || "/favicon.jpg"} alt={business?.name || "Merchant"} className="size-full object-cover" />
+                ) : (
+                  <User className="size-3.5 sm:size-4" />
+                )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className={`flex flex-col space-y-1 ${msg.role === "customer" ? "items-end" : "items-start"}`}>
+                <div className={`flex items-center gap-3 px-1 mb-0.5 ${msg.role === "customer" ? "flex-row-reverse" : ""}`}>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                    {msg.role === 'customer' ? (userName || 'You') : msg.role === 'owner' ? business?.name || 'Owner' : 'VOXY AI'}
+                  </span>
+                </div>
                 <div className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] text-[14px] sm:text-[15px] leading-relaxed shadow-2xl transition-all duration-700 hover:scale-[1.01] ${
                   msg.role === "customer"
                     ? "bg-[#00D18F] text-black font-bold rounded-tr-[0.4rem] sm:rounded-tr-[0.5rem] shadow-sm"
-                    : "bg-white/[0.03] text-zinc-100 border border-white/[0.05] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
+                    : msg.role === "owner"
+                      ? "bg-[#00D18F]/10 text-white border border-[#00D18F]/30 rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
+                      : "bg-white/[0.03] text-zinc-100 border border-white/[0.05] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
                 }`}>
                   {msg.content}
                 </div>
@@ -280,11 +377,17 @@ export default function ChatInterface({ business, userName }) {
           </div>
         ))}
 
-        {isTyping && (
+        {typingUser && (
           <div className="flex justify-start animate-in fade-in duration-500">
             <div className="flex gap-3 sm:gap-5">
-               <div className="size-8 sm:size-10 rounded-lg sm:rounded-xl bg-[#00D18F]/5 border border-[#00D18F]/20 text-[#00D18F] flex items-center justify-center shadow-2xl">
-                <Sparkles size={14} className="animate-pulse" />
+               <div className="size-8 sm:size-10 rounded-lg sm:rounded-xl bg-[#00D18F]/5 border border-[#00D18F]/20 text-[#00D18F] flex items-center justify-center shadow-2xl overflow-hidden">
+                {typingUser === 'ai' ? (
+                  <img src="/favicon.jpg" alt="Voxy AI" className="size-full object-cover" />
+                ) : typingUser === 'owner' ? (
+                  <img src={business?.logo_url || "/favicon.jpg"} alt={business?.name || "Merchant"} className="size-full object-cover" />
+                ) : (
+                  <User className="size-3.5 sm:size-4" />
+                )}
               </div>
               <div className="bg-white/[0.03] border border-white/[0.05] px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem] flex items-center gap-1.5 sm:gap-2">
                 <span className="size-1 sm:size-1.5 bg-[#00D18F] rounded-full animate-bounce [animation-delay:-0.3s] shadow-[0_0_8px_#00D18F]"></span>
@@ -323,7 +426,11 @@ export default function ChatInterface({ business, userName }) {
             <input
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                handleTyping(e.target.value.length > 0);
+              }}
+              onBlur={() => handleTyping(false)}
               placeholder={window?.innerWidth < 640 ? "Message..." : `Engage with ${business?.name || "Assistant"}...`}
               className="flex-1 bg-transparent border-none outline-none py-2.5 sm:py-3.5 px-3 text-[15px] sm:text-[16px] text-white placeholder:text-zinc-700 font-medium"
             />
