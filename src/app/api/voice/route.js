@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
-import fs from 'fs/promises';
+import fs from 'fs';
+import fsPromises from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 
@@ -69,22 +70,41 @@ async function generateSpeech(text) {
     const tempDir = path.join(process.cwd(), 'public', 'temp_voice');
     
     // Ensure directory exists
-    await fs.mkdir(tempDir, { recursive: true }).catch(() => {});
+    if (!fs.existsSync(tempDir)) {
+      await fsPromises.mkdir(tempDir, { recursive: true });
+    }
     
     const filePath = path.join(tempDir, tempFileName);
     
-    // Use MsEdgeTTS for high-quality, free natural voice
-    // en-US-AriaNeural is a highly realistic standard female Microsoft Edge voice
     const tts = new MsEdgeTTS();
     await tts.setMetadata("en-US-AriaNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-    await tts.toFile(filePath, text);
     
-    // AUTO-CLEANUP: Schedule file deletion after 5 minutes to prevent server disk bloat
-    setTimeout(() => {
-      fs.unlink(filePath)
-        .then(() => console.log(`[VOICE CLEANUP] Auto-deleted ${tempFileName}`))
-        .catch(err => console.error(`[VOICE CLEANUP] Failed to delete ${tempFileName}:`, err));
-    }, 5 * 60 * 1000); // 5 minutes in ms
+    // Use manual stream to fix the weird ENOENT: .../xxx.mp3/audio.mp3 on some systems
+    const stream = tts.toStream(text);
+    const writer = fs.createWriteStream(filePath);
+    stream.pipe(writer);
+
+    await new Promise((resolve, reject) => {
+      writer.on('finish', resolve);
+      writer.on('error', (err) => {
+        console.error('Writer Stream Error:', err);
+        reject(err);
+      });
+    });
+    
+    // AUTO-CLEANUP: Schedule file deletion after 15 minutes (as requested: "audio is deleting to early")
+    setTimeout(async () => {
+      try {
+        if (fs.existsSync(filePath)) {
+          await fsPromises.unlink(filePath);
+          console.log(`[VOICE CLEANUP] Auto-deleted ${tempFileName}`);
+        }
+      } catch (err) {
+        if (err.code !== 'ENOENT') {
+          console.error(`[VOICE CLEANUP] Failed to delete ${tempFileName}:`, err);
+        }
+      }
+    }, 15 * 60 * 1000); // 15 minutes
     
     return `/temp_voice/${tempFileName}`;
   } catch (error) {
@@ -115,7 +135,7 @@ export async function POST(req) {
     const aiResponseText = await generateChatResponse(conversationId, transcript);
     console.log(`[VOICE] AI Response: "${aiResponseText}"`);
 
-    // 3. Convert Text to Speech (using Google TTS)
+    // 3. Convert Text to Speech (using Edge TTS)
     let audioUrl = null;
     if (aiResponseText) {
       audioUrl = await generateSpeech(aiResponseText);

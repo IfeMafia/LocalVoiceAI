@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Loader2, Play, Volume2 } from "lucide-react";
+import { Loader2, Play } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import ChatHeader from "@/components/conversation/ChatHeader";
 import MessageList from "@/components/conversation/MessageList";
@@ -9,15 +9,13 @@ import MessageInput from "@/components/conversation/MessageInput";
 
 export default function ChatInterface({ business, userName }) {
   const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState("");
   const [conversationId, setConversationId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isBusinessOnline, setIsBusinessOnline] = useState(false);
-  const [typingUser, setTypingUser] = useState(null); // 'ai' or 'owner' or null
+  const [typingUser, setTypingUser] = useState(null); 
   const [isAiEnabled, setIsAiEnabled] = useState(true);
-  const [isAiAllowed, setIsAiAllowed] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  const [voiceStatus, setVoiceStatus] = useState(null); // 'recording' | 'processing' | 'speaking' | null
+  const [voiceStatus, setVoiceStatus] = useState(null); 
   const [pendingAudioUrl, setPendingAudioUrl] = useState(null);
   const audioRef = useRef(null);
 
@@ -37,7 +35,6 @@ export default function ChatInterface({ business, userName }) {
         if (data.success && data.id) {
           setConversationId(data.id);
           setIsAiEnabled(data.ai_enabled ?? true);
-          setIsAiAllowed(data.ai_allowed ?? true);
           
           const msgRes = await fetch(`/api/conversations/${data.id}/messages`);
           const msgData = await msgRes.json();
@@ -50,7 +47,7 @@ export default function ChatInterface({ business, userName }) {
               status: 'read'
             })));
           } else {
-            const welcome = `Welcome to ${business.name}! I'm VOXY AI. I can help you with bookings, product inquiries, or general support in any language. How can I assist you today?`;
+            const welcome = `Hi! I'm ${business.name}'s AI assistant. I can help you with bookings, product inquiries, or support. How can I assist you today?`;
             setMessages([{
               id: 'welcome',
               role: 'ai',
@@ -78,23 +75,17 @@ export default function ChatInterface({ business, userName }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ai_enabled: checked })
       });
-      if (res.ok) {
-        setIsAiEnabled(checked);
-      }
+      if (res.ok) setIsAiEnabled(checked);
     } catch (err) {
       console.error('Toggle AI error:', err);
     }
   };
 
   const handleClearChat = async () => {
-    if (!conversationId || !confirm('Are you sure you want to clear your chat history?')) return;
+    if (!conversationId || !confirm('Clear chat history?')) return;
     try {
-      const res = await fetch(`/api/conversations/${conversationId}/clear`, {
-        method: 'POST'
-      });
-      if (res.ok) {
-        setMessages([]);
-      }
+      const res = await fetch(`/api/conversations/${conversationId}/clear`, { method: 'POST' });
+      if (res.ok) setMessages([]);
     } catch (err) {
       console.error('Clear chat error:', err);
     }
@@ -104,82 +95,45 @@ export default function ChatInterface({ business, userName }) {
     if (!conversationId) return;
 
     const channel = supabase
-      .channel(`chat:${conversationId}`, {
-        config: {
-          broadcast: { self: false }
-        }
+      .channel(`chat:${conversationId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, (payload) => {
+        const msg = payload.new;
+        setMessages(prev => {
+          if (prev.find(m => m.id === msg.id)) return prev;
+          
+          const tempMatch = prev.find(m => 
+            m.id?.toString().startsWith('temp-') && 
+            m.content === msg.content && 
+            m.role === msg.sender_type
+          );
+
+          if (tempMatch) {
+            return prev.map(m => m.id === tempMatch.id ? {
+              id: msg.id,
+              role: msg.sender_type,
+              content: msg.content,
+              created_at: msg.created_at,
+              status: 'read'
+            } : m);
+          }
+
+          return [...prev, {
+            id: msg.id,
+            role: msg.sender_type,
+            content: msg.content,
+            created_at: msg.created_at,
+            status: 'read',
+            isNew: msg.sender_type !== 'customer'
+          }];
+        });
+        if (msg.sender_type !== 'customer') setTypingUser(null);
       })
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
-        },
-        (payload) => {
-          const newMessage = payload.new;
-          setMessages(prev => {
-            if (prev.find(m => m.id === newMessage.id)) return prev;
-            
-            const tempMatch = prev.find(m => 
-              m.id?.toString().startsWith('temp-') && 
-              m.content === newMessage.content && 
-              m.role === newMessage.sender_type
-            );
-
-            if (tempMatch) {
-              return prev.map(m => m.id === tempMatch.id ? {
-                id: newMessage.id,
-                role: newMessage.sender_type,
-                content: newMessage.content,
-                created_at: newMessage.created_at,
-                status: 'read'
-              } : m);
-            }
-
-            return [...prev, {
-              id: newMessage.id,
-              role: newMessage.sender_type,
-              content: newMessage.content,
-              created_at: newMessage.created_at,
-              status: 'read',
-              isNew: newMessage.sender_type !== 'customer'
-            }];
-          });
-          if (newMessage.sender_type !== 'customer') {
-            setTypingUser(null);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'conversations',
-          filter: `id=eq.${conversationId}`
-        },
-        (payload) => {
-          if (payload.new.ai_enabled !== undefined) {
-            setIsAiEnabled(payload.new.ai_enabled);
-          }
-          if (payload.new.ai_allowed !== undefined) {
-            setIsAiAllowed(payload.new.ai_allowed);
-          }
-        }
-      )
       .on('broadcast', { event: 'typing' }, (payload) => {
-        if (payload.payload.isTyping) {
-          setTypingUser(payload.payload.senderType);
-        } else {
-          setTypingUser(null);
-        }
+        setTypingUser(payload.payload.isTyping ? payload.payload.senderType : null);
       })
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        const online = Object.values(state).flat().some(p => p.role === 'business');
-        setIsBusinessOnline(online);
+        setIsBusinessOnline(Object.values(state).flat().some(p => p.role === 'business'));
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -187,9 +141,7 @@ export default function ChatInterface({ business, userName }) {
         }
       });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [conversationId]);
 
   const handleTyping = (isTyping) => {
@@ -209,44 +161,20 @@ export default function ChatInterface({ business, userName }) {
 
     try {
       const tempId = 'temp-' + Date.now();
-      setMessages(prev => [...prev, {
-        id: tempId,
-        role: 'customer',
-        content: text,
-        created_at: new Date().toISOString(),
-        status: 'read'
-      }]);
+      setMessages(prev => [...prev, { id: tempId, role: 'customer', content: text, created_at: new Date().toISOString(), status: 'read' }]);
 
       const res = await fetch(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          content: text, 
-          senderType: 'customer',
-          setStatus: business?.use_ai_reply === false ? 'Needs Owner Response' : undefined
-        })
+        body: JSON.stringify({ content: text, senderType: 'customer' })
       });
       const data = await res.json();
       
       if (data.success) {
-        setMessages(prev => prev.map(m => m.id === tempId ? {
-          ...m,
-          id: data.message.id,
-          status: 'sent'
-        } : m));
-
+        setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: data.message.id, status: 'sent' } : m));
         if (isAiEnabled) {
           setTypingUser('ai');
-          try {
-            await fetch('/api/assistant/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ conversationId })
-            });
-          } catch (aiErr) {
-            console.error('[AI-TRIGGER] Error:', aiErr);
-            setTypingUser(null);
-          }
+          await fetch('/api/assistant/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ conversationId }) });
         }
       }
     } catch (err) {
@@ -259,134 +187,74 @@ export default function ChatInterface({ business, userName }) {
 
   const handleAudioReady = async (audioBlob) => {
     if (!conversationId || isSending) return;
-    
     setIsSending(true);
     setVoiceStatus('processing');
-    handleTyping(false);
 
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob);
       formData.append('conversationId', conversationId);
 
-      const res = await fetch('/api/voice', {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch('/api/voice', { method: 'POST', body: formData });
       const data = await res.json();
 
       if (data.success && data.audioUrl) {
-        // Stop any currently playing audio
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current.currentTime = 0;
         }
         
-        // Play the new audio response (mobile-safe)
         const audio = new Audio(data.audioUrl);
         audioRef.current = audio;
-        
-        audio.addEventListener('ended', () => {
-          setVoiceStatus(null);
-          setPendingAudioUrl(null);
-        });
-        audio.addEventListener('error', () => {
-          setVoiceStatus(null);
-          setPendingAudioUrl(null);
-        });
+        audio.addEventListener('ended', () => { setVoiceStatus(null); setPendingAudioUrl(null); });
+        audio.addEventListener('error', () => { setVoiceStatus(null); setPendingAudioUrl(null); });
 
         try {
           await audio.play();
           setVoiceStatus('speaking');
-          setPendingAudioUrl(null);
         } catch (e) {
-          // Autoplay blocked (mobile) — show fallback play button
-          console.warn('Autoplay blocked, showing fallback button:', e);
           setPendingAudioUrl(data.audioUrl);
           setVoiceStatus(null);
         }
-      } else if (!data.success) {
-         console.error("Voice API error:", data.error || data.message);
-         setVoiceStatus(null);
       }
     } catch (err) {
-      console.error('Voice send error:', err);
-      setVoiceStatus(null);
+      console.error('Voice error:', err);
     } finally {
       setIsSending(false);
+      setVoiceStatus(null);
     }
-  };
-
-  const handlePlayPendingAudio = () => {
-    if (!pendingAudioUrl) return;
-    const audio = new Audio(pendingAudioUrl);
-    audioRef.current = audio;
-    audio.addEventListener('ended', () => {
-      setVoiceStatus(null);
-      setPendingAudioUrl(null);
-    });
-    audio.play().then(() => {
-      setVoiceStatus('speaking');
-    }).catch(e => {
-      console.error('Fallback play failed:', e);
-      setVoiceStatus(null);
-      setPendingAudioUrl(null);
-    });
   };
 
   const handleFileUpload = async (file) => {
     if (!conversationId || isSending) return;
-    
     setIsSending(true);
     const tempId = 'temp-' + Date.now();
     const previewUrl = URL.createObjectURL(file);
 
-    // Optimistic UI — show preview immediately
-    setMessages(prev => [...prev, {
-      id: tempId,
-      role: 'customer',
-      content: `[img]${previewUrl}`,
-      created_at: new Date().toISOString(),
-      status: 'sending'
-    }]);
+    setMessages(prev => [...prev, { id: tempId, role: 'customer', content: `[img]${previewUrl}`, created_at: new Date().toISOString(), status: 'sending' }]);
 
     try {
-      // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `chat-images/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
-
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { cacheControl: '3600', upsert: false });
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
-      // Save as message with [img] prefix
       const res = await fetch(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: `[img]${publicUrl}`,
-          senderType: 'customer'
-        })
+        body: JSON.stringify({ content: `[img]${publicUrl}`, senderType: 'customer' })
       });
       const data = await res.json();
 
       if (data.success) {
-        setMessages(prev => prev.map(m => m.id === tempId ? {
-          ...m,
-          id: data.message.id,
-          content: `[img]${publicUrl}`,
-          status: 'sent'
-        } : m));
+        setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: data.message.id, content: `[img]${publicUrl}`, status: 'sent' } : m));
       }
     } catch (err) {
-      console.error('Image upload error:', err);
+      console.error('Upload error:', err);
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } finally {
       setIsSending(false);
@@ -395,51 +263,46 @@ export default function ChatInterface({ business, userName }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-6 bg-black rounded-[3rem] border border-white/5">
-        <div className="relative">
-          <Loader2 className="w-12 h-12 animate-spin text-[#00D18F]" />
-          <div className="absolute inset-0 blur-xl bg-[#00D18F]/20 animate-pulse" />
-        </div>
-        <p className="text-zinc-500 font-black uppercase tracking-[0.3em] text-[10px]">Initializing VOXY AI</p>
+      <div className="flex flex-col items-center justify-center h-full space-y-4 bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-[#00D18F]/50" />
+        <p className="text-zinc-600 text-[10px] uppercase tracking-widest font-bold">Connecting</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-black rounded-2xl md:rounded-[3.5rem] overflow-hidden shadow-2xl border border-white/5 transition-all duration-700 animate-in fade-in zoom-in-95 w-full">
+    <div className="flex flex-col h-full bg-black md:rounded-[2rem] overflow-hidden border-x border-white/5 w-full max-w-4xl mx-auto shadow-2xl relative">
       <ChatHeader 
         name={business?.name}
         status={isBusinessOnline ? 'Online' : 'Away'}
         icon={business?.logo_url || "/favicon.jpg"}
         aiEnabled={isAiEnabled}
-        aiLabel="VOXY AI"
         onToggleAi={handleToggleAi}
         onClear={handleClearChat}
         showBack={true}
         backUrl="/customer/chat"
       />
 
-      <div className="flex-1 overflow-hidden flex flex-col relative">
+      <div className="flex-1 overflow-hidden relative flex flex-col bg-black">
         <MessageList 
-          messages={messages.map(m => ({
-            ...m,
-            sender_type: m.role
-          }))} 
+          messages={messages.map(m => ({ ...m, sender_type: m.role }))} 
           typingUser={typingUser}
           businessName={business?.name}
           isCustomerView={true}
           conversationId={conversationId}
         />
 
-        {/* Fallback Play Button for mobile autoplay block */}
         {pendingAudioUrl && (
-          <div className="flex justify-center py-2 px-4 animate-in fade-in duration-300">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
             <button
-              onClick={handlePlayPendingAudio}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#00D18F]/10 border border-[#00D18F]/20 text-[#00D18F] text-xs font-bold uppercase tracking-widest hover:bg-[#00D18F]/20 transition-all active:scale-95 shadow-lg"
+              onClick={() => {
+                const audio = new Audio(pendingAudioUrl);
+                audio.play();
+                setPendingAudioUrl(null);
+              }}
+              className="px-4 py-2 rounded-full bg-[#00D18F] text-black text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl"
             >
-              <Play className="size-4 fill-current" />
-              Play AI Response
+              <Play size={14} fill="currentColor" /> Play AI Audio
             </button>
           </div>
         )}
@@ -452,7 +315,7 @@ export default function ChatInterface({ business, userName }) {
         onFileUpload={handleFileUpload}
         isLoading={isSending}
         voiceStatus={voiceStatus}
-        placeholder={`Engage with ${business?.name || "Assistant"}...`}
+        placeholder="Type a message..."
       />
     </div>
   );

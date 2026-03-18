@@ -3,6 +3,12 @@ import { Mic, Square, Loader2 } from 'lucide-react';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 
 export const VoiceButton = ({ onAudioReady, isLoading }) => {
+  const { state, error, startRecording, stopRecording, isRecording } = useVoiceRecorder({ 
+    onAutoStop: (blob) => {
+      if (blob) onAudioReady(blob);
+    }
+  });
+
   const handleToggleRecording = async () => {
     if (isRecording) {
       const audioBlob = await stopRecording();
@@ -14,41 +20,48 @@ export const VoiceButton = ({ onAudioReady, isLoading }) => {
     }
   };
 
-  const { state, error, startRecording, stopRecording, isRecording } = useVoiceRecorder({ 
-    onAutoStop: (blob) => {
-      if (blob) onAudioReady(blob);
-    }
-  });
-
-  const busy = isLoading;
-
   return (
-    <div className="relative group flex items-center justify-center">
+    <div className="relative group flex items-center justify-center shrink-0">
+      {/* Animated Ripple for Recording State */}
+      {isRecording && (
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-20" />
+          <div className="absolute inset-0 bg-red-500 rounded-full animate-pulse opacity-10 scale-150" />
+        </div>
+      )}
+
       <button
         type="button"
-        disabled={busy}
+        disabled={isLoading}
         onClick={handleToggleRecording}
-        className={`size-10 sm:size-12 md:size-16 rounded-xl sm:rounded-2xl md:rounded-3xl font-bold flex items-center justify-center transition-all duration-500 shadow-xl shrink-0 ${
+        className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
           isRecording 
-            ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse shadow-red-500/20' 
-            : busy
-              ? 'bg-[#00D18F]/20 text-[#00D18F]/50 cursor-not-allowed'
-              : 'bg-white/5 text-zinc-500 hover:bg-white/10'
+            ? 'bg-red-500 text-white border-red-400' 
+            : isLoading
+              ? 'bg-white/5 text-zinc-600 cursor-not-allowed'
+              : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'
         }`}
-        title={error ? error : isRecording ? "Stop Recording" : "Start Voice Message"}
+        title={error || (isRecording ? "Stop Recording" : "Start Transcribing")}
       >
-        {busy ? (
-          <Loader2 className="size-4 sm:size-5 md:size-6 animate-spin text-[#00D18F]" />
+        {isLoading ? (
+          <Loader2 size={18} className="animate-spin" />
         ) : isRecording ? (
-          <Square className="size-4 sm:size-5 md:size-6 transition-transform duration-500 fill-current" />
+          <Square size={16} fill="currentColor" strokeWidth={0} />
         ) : (
-          <Mic className="size-4 sm:size-5 md:size-6 transition-transform duration-500" strokeWidth={3} />
+          <Mic size={18} strokeWidth={2.5} />
         )}
       </button>
 
+      {/* recording Label for desktop/large screens */}
+      {isRecording && (
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-red-500 text-[8px] font-bold uppercase tracking-[0.2em] px-2 py-1 rounded-md text-white whitespace-nowrap animate-bounce shadow-xl">
+          REC
+        </div>
+      )}
+
       {/* Error Tooltip */}
       {error && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-500/10 text-red-500 text-xs px-3 py-1.5 rounded-lg border border-red-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-500/10 text-red-500 text-[10px] px-3 py-1.5 rounded-lg border border-red-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
           {error}
         </div>
       )}

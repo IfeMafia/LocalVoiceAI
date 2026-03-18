@@ -1,14 +1,26 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from 'react';
-import { Send, Paperclip, X, ImageIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Paperclip, X, Mic, Loader2, Play, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoiceButton } from '@/components/chat/VoiceButton';
 
 const VOICE_STATUS_CONFIG = {
-  recording: { label: 'Recording...', color: 'bg-red-500', pulse: true },
-  processing: { label: 'Processing...', color: 'bg-amber-500', pulse: false },
-  speaking: { label: 'AI is speaking...', color: 'bg-[#00D18F]', pulse: true },
+  recording: {
+    label: "Recording...",
+    color: "text-red-500",
+    icon: <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse mr-2" />
+  },
+  processing: {
+    label: "AI is thinking...",
+    color: "text-[#00D18F]",
+    icon: <Loader2 className="w-3 h-3 animate-spin mr-2" />
+  },
+  speaking: {
+    label: "AI is speaking...",
+    color: "text-blue-400",
+    icon: <Volume2 className="w-3 h-3 animate-pulse mr-2" />
+  }
 };
 
 const MessageInput = ({ 
@@ -18,7 +30,7 @@ const MessageInput = ({
   onFileUpload,
   isLoading, 
   voiceStatus,
-  placeholder = "Write a message..." 
+  placeholder = "Message..." 
 }) => {
   const [content, setContent] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
@@ -28,7 +40,6 @@ const MessageInput = ({
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
 
-    // File upload flow
     if (selectedFile && onFileUpload) {
       onFileUpload(selectedFile);
       setSelectedFile(null);
@@ -40,7 +51,10 @@ const MessageInput = ({
       onSendMessage(content.trim());
       setContent('');
       onTyping?.(false);
-      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.focus();
+      }
     }
   };
 
@@ -54,7 +68,7 @@ const MessageInput = ({
   const handleInput = (e) => {
     const target = e.target;
     target.style.height = 'auto';
-    target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+    target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
     setContent(target.value);
 
     if (onTyping) {
@@ -66,12 +80,12 @@ const MessageInput = ({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      alert('Only image files are allowed');
-      return;
+        alert("Only images are allowed currently.");
+        return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be less than 5MB');
-      return;
+        alert("Image must be smaller than 5MB.");
+        return;
     }
     setSelectedFile(file);
   };
@@ -84,54 +98,40 @@ const MessageInput = ({
   const statusConfig = voiceStatus ? VOICE_STATUS_CONFIG[voiceStatus] : null;
 
   return (
-    <div className="px-2 sm:px-4 py-2 sm:py-4 md:px-10 md:py-6 bg-black border-t border-white/[0.03] w-full shrink-0">
-      {/* Voice Status Banner */}
-      {statusConfig && (
-        <div className="max-w-5xl mx-auto mb-2">
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-widest ${
-            voiceStatus === 'recording' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-            voiceStatus === 'processing' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-            'bg-[#00D18F]/10 text-[#00D18F] border border-[#00D18F]/20'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${statusConfig.color} ${statusConfig.pulse ? 'animate-pulse' : 'animate-spin'}`} />
-            <span className="text-[10px]">{statusConfig.label}</span>
+    <div className="w-full shrink-0 border-t border-white/[0.03] bg-black/40 backdrop-blur-xl px-3 py-3 sm:px-6 sm:py-4 md:px-10 md:py-6">
+      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto flex flex-col gap-3">
+        
+        {/* Voice Status Indicator Banner */}
+        {statusConfig && (
+          <div className="flex items-center justify-center py-1.5 px-4 rounded-full bg-white/[0.03] border border-white/[0.05] self-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {statusConfig.icon}
+            <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${statusConfig.color}`}>
+              {statusConfig.label}
+            </span>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Selected Image Preview */}
-      {selectedFile && (
-        <div className="max-w-5xl mx-auto mb-2">
-          <div className="relative inline-block rounded-xl overflow-hidden border border-white/10 bg-white/5">
-            <img
-              src={URL.createObjectURL(selectedFile)}
-              alt="Preview"
-              className="max-h-32 max-w-[200px] object-cover rounded-xl"
-            />
-            <button
-              onClick={removeFile}
-              className="absolute top-1 right-1 p-1 bg-black/70 rounded-full text-zinc-300 hover:text-white transition-colors"
-            >
-              <X className="size-3.5" />
-            </button>
+        {/* Selected Image Preview (Clean and Modern) */}
+        {selectedFile && (
+          <div className="flex animate-in zoom-in-95 duration-300">
+            <div className="relative group p-1 bg-white/[0.05] rounded-2xl border border-white/10 group">
+              <img
+                src={URL.createObjectURL(selectedFile)}
+                alt="Preview"
+                className="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-xl"
+              />
+              <button
+                type="button"
+                onClick={removeFile}
+                className="absolute -top-2 -right-2 p-1.5 bg-red-500 hover:bg-red-400 text-white rounded-full shadow-2xl transition-all scale-90 group-hover:scale-100"
+              >
+                <X size={12} strokeWidth={3} />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto flex items-end gap-2 sm:gap-3">
-        {/* Input Container */}
-        <div className="flex-1 flex items-end gap-1 bg-white/[0.02] border border-white/[0.05] rounded-2xl sm:rounded-[2rem] p-1 sm:p-2 focus-within:ring-4 focus-within:ring-[#00D18F]/5 focus-within:border-[#00D18F]/30 transition-all duration-500 shadow-2xl">
-          {/* File Upload Button */}
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => fileInputRef.current?.click()}
-            className="text-zinc-500 hover:text-[#00D18F] h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl transition-colors shrink-0"
-          >
-            <Paperclip className="size-5" />
-          </Button>
-
+        <div className="flex items-end gap-2 sm:gap-4">
           <input
             type="file"
             ref={fileInputRef}
@@ -140,30 +140,40 @@ const MessageInput = ({
             accept="image/*"
           />
           
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            onBlur={() => onTyping?.(false)}
-            placeholder={placeholder}
-            rows={1}
-            className="flex-1 bg-transparent border-none outline-none py-2.5 sm:py-3 px-1 sm:px-2 text-[15px] sm:text-[16px] text-white placeholder:text-zinc-700 font-medium resize-none min-h-[40px] sm:min-h-[48px] leading-relaxed transition-all"
-          />
-        </div>
-        
-        {/* Send / Voice Button */}
-        {content.trim() || selectedFile ? (
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="size-10 sm:size-12 md:size-14 rounded-xl sm:rounded-2xl md:rounded-3xl font-bold flex items-center justify-center transition-all duration-500 shadow-xl active:scale-90 shrink-0 bg-[#00D18F] text-black hover:bg-emerald-400 hover:scale-105 shadow-[#00D18F]/20"
+          <button 
+            type="button" 
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-[#00D18F] hover:bg-[#00D18F]/10 transition-all active:scale-95"
           >
-            <Send className="size-5 sm:size-6 translate-x-0.5 -translate-y-0.5" strokeWidth={3} />
+            <Paperclip size={20} />
           </button>
-        ) : (
-          <VoiceButton onAudioReady={onAudioReady} isLoading={isLoading} />
-        )}
+
+          <div className="flex-1 bg-white/[0.03] border border-white/[0.08] rounded-[1.8rem] px-5 py-1.5 focus-within:border-[#00D18F]/30 focus-within:bg-white/[0.05] transition-all duration-300">
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={handleInput}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              rows={1}
+              className="w-full bg-transparent border-none outline-none py-2 text-[15px] text-white placeholder:text-zinc-600 resize-none min-h-[40px] max-h-[160px]"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <VoiceButton onAudioReady={onAudioReady} isLoading={isLoading} />
+            
+            {(content.trim() || selectedFile) && (
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-12 h-12 rounded-full bg-[#00D18F] text-black flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(0,209,143,0.3)] active:scale-95 disabled:opacity-50"
+              >
+                <Send size={18} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        </div>
       </form>
     </div>
   );
