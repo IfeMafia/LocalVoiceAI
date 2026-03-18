@@ -364,7 +364,7 @@ export default function ChatInterface({ business, userName }) {
                   <span className={`text-[10px] font-black uppercase tracking-wider ${
                     msg.role === "owner" ? "text-blue-400" : msg.role === "ai" ? "text-[#00D18F]" : "text-zinc-500"
                   }`}>
-                    {msg.role === 'customer' ? (userName || 'You') : msg.role === 'owner' ? business?.name || 'Owner' : 'Voxier AI'}
+                    {msg.role === 'customer' ? (userName || 'You') : msg.role === 'owner' ? business?.name || 'Owner' : 'VOXY AI'}
                   </span>
                 </div>
                 <div className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] text-[14px] sm:text-[15px] leading-relaxed shadow-2xl transition-all duration-700 hover:scale-[1.01] ${
