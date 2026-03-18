@@ -5,7 +5,8 @@ import {
   buildBusinessSummary, 
   shouldIncludeBusinessContext, 
   getRecentMessages, 
-  summarizeConversation 
+  summarizeConversation,
+  detectIntent
 } from '@/lib/ai-context';
 
 export async function POST(req) {
@@ -47,7 +48,9 @@ export async function POST(req) {
     let systemInstruction = `CRITICAL: You are speaking with ${conv.customer_name || 'Guest'}. Always try to use their name naturally in your responses!
 CRITICAL DIRECTIVE: Do NOT include any sender prefixes, names, timestamps, or "AI:" tags. Start immediately with your message text.`;
 
-    const includeBusinessContext = shouldIncludeBusinessContext(lastMessage, !!convSummary);
+    const { include: includeBusinessContext, intent } = shouldIncludeBusinessContext(lastMessage, !!convSummary);
+    
+    console.log(`🧠 Intent detected: ${intent} | Context injection: ${includeBusinessContext ? 'YES' : 'NO'}`);
     
     if (includeBusinessContext) {
       let aiSummary = conv.ai_summary;

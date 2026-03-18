@@ -40,24 +40,66 @@ Instructions: ${b.assistant_instructions}
 }
 
 /**
- * 2. CONDITIONAL CONTEXT INJECTION
+ * 2. INTENT DETECTION
+ * Simple regex and keyword matcher to classify user intent without an LLM call.
+ */
+export function detectIntent(message) {
+  if (!message || typeof message !== 'string') return 'conversation';
+
+  const lowerMsg = message.toLowerCase();
+
+  // Pattern sets
+  const intents = {
+    order_request: [
+      /i (want|need) to (order|buy|book|get)/,
+      /can i (order|get|have)/,
+      /(order|buy|book|get) (some|a|an)/,
+      /\b(order|buy|purchase|book|reserve)\b/
+    ],
+    support: [
+      /(not working|broken|delay)/,
+      /where is my (order|stuff)/,
+      /i have a (problem|issue|complaint)/,
+      /\b(problem|issue|complain|complaint|help|refund|missing|wrong)\b/
+    ],
+    business_info: [
+      /what do you (sell|offer|have)/,
+      /how much (is it|does it cost)/,
+      /are you (open|closed)/,
+      /where are you (located|based)/,
+      /\b(price|cost|costing|service|menu|offer|available|open|close|hours|location|address)\b/
+    ]
+  };
+
+  // Match against sets in priority order
+  for (const intent of ['support', 'order_request', 'business_info']) {
+    for (const pattern of intents[intent]) {
+      if (pattern.test(lowerMsg)) {
+        return intent;
+      }
+    }
+  }
+
+  return 'conversation';
+}
+
+/**
+ * 3. CONDITIONAL CONTEXT INJECTION
  * Determines if the business context should be sent to the AI.
  * We send it if there's no conversation summary (meaning it's new) 
- * OR if the message implies a need for core business knowledge.
+ * OR if the message intent requires core business knowledge.
  */
 export function shouldIncludeBusinessContext(messageContent, hasSummary) {
   // Always include if the conversation is new enough that we haven't summarized it yet
-  if (!hasSummary) return true;
+  if (!hasSummary) return { include: true, intent: 'new_conversation' };
 
-  // Simple heuristic: if the message asks about services, pricing, hours, location, who, what
-  const keywords = ['price', 'cost', 'service', 'hour', 'time', 'location', 'where', 'who', 'what', 'offer', 'do you', 'can you'];
-  const contentLower = messageContent.toLowerCase();
+  const intent = detectIntent(messageContent);
   
-  for (const kw of keywords) {
-    if (contentLower.includes(kw)) return true;
+  if (intent === 'business_info' || intent === 'order_request' || intent === 'support') {
+    return { include: true, intent };
   }
   
-  return false;
+  return { include: false, intent };
 }
 
 /**
