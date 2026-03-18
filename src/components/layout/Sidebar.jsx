@@ -83,8 +83,8 @@ export default function Sidebar({ isOpen, onClose }) {
         {/* Logo Section */}
         <div className="p-6 pt-8 flex items-center justify-between shrink-0">
           <Link href="/" className="flex items-center gap-3">
-            <div className="size-8 flex items-center justify-center">
-              <img src="/favicon.jpg" alt="Voxy Logo" className="w-8 h-8 object-contain" />
+            <div className="size-10 flex items-center justify-center">
+              <img src="/favicon.jpg" alt="Voxy Logo" className="w-10 h-10 object-contain" />
             </div>
             <span className="font-display text-xl font-bold tracking-tight text-white uppercase tracking-tighter">VOXY</span>
           </Link>
