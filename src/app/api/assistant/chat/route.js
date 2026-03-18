@@ -20,9 +20,11 @@ export async function POST(req) {
 
     // 1. Fetch Conversation and Business Context
     const conversationRes = await db.query(
-      `SELECT c.*, b.name as business_name, b.category, b.assistant_tone, b.assistant_instructions, b.description as business_desc, b.ai_summary
+      `SELECT c.*, b.name as business_name, b.category, b.assistant_tone, b.assistant_instructions, b.description as business_desc, b.ai_summary,
+              u.name as actual_customer_name
        FROM conversations c
        JOIN businesses b ON c.business_id = b.id
+       LEFT JOIN users u ON c.customer_id = u.id
        WHERE c.id = $1`,
       [conversationId]
     );
@@ -45,7 +47,8 @@ export async function POST(req) {
     const lastMessage = chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].content : '';
 
     // 3. Determine if we need full business context injected into System Prompt
-    let systemInstruction = `CRITICAL: You are speaking with ${conv.customer_name || 'Guest'}. Always try to use their name naturally in your responses!
+    const resolvedCustomerName = conv.actual_customer_name || conv.customer_name || 'Guest';
+    let systemInstruction = `CRITICAL: You are speaking with ${resolvedCustomerName}. Always try to use their name naturally in your responses!
 CRITICAL DIRECTIVE: Do NOT include any sender prefixes, names, timestamps, or "AI:" tags. Start immediately with your message text.`;
 
     const { include: includeBusinessContext, intent } = shouldIncludeBusinessContext(lastMessage, !!convSummary);

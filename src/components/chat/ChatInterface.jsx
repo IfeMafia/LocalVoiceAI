@@ -459,11 +459,14 @@ export default function ChatInterface({ business, userName }) {
           </div>
           
           <button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className="bg-[#00D18F] text-black size-12 sm:size-14 rounded-2xl font-bold hover:bg-emerald-400 hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-20 disabled:grayscale disabled:scale-100 flex items-center justify-center shadow-xl shadow-[#00D18F]/20 group"
+            type={inputValue.trim() ? "submit" : "button"}
+            className="bg-[#00D18F] text-black size-12 sm:size-14 rounded-2xl font-bold hover:bg-emerald-400 hover:scale-105 active:scale-95 transition-all duration-500 flex items-center justify-center shadow-xl shadow-[#00D18F]/20 group"
           >
-            <Send className="size-[18px] sm:size-[20px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" strokeWidth={3} />
+            {inputValue.trim() ? (
+              <Send className="size-[18px] sm:size-[20px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" strokeWidth={3} />
+            ) : (
+              <Mic className="size-[18px] sm:size-[20px] transition-transform duration-500" strokeWidth={3} />
+            )}
           </button>
         </form>
       </div>
