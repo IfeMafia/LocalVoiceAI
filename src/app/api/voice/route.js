@@ -82,7 +82,7 @@ async function generateSpeech(text) {
     // Use manual stream to fix the weird ENOENT: .../xxx.mp3/audio.mp3 on some systems
     const stream = tts.toStream(text);
     const writer = fs.createWriteStream(filePath);
-    stream.pipe(writer);
+    stream.audioStream.pipe(writer);
 
     await new Promise((resolve, reject) => {
       writer.on('finish', resolve);
