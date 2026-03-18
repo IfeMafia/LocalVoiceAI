@@ -77,11 +77,11 @@ export default function Sidebar({ isOpen, onClose }) {
       )}
 
       <div className={`
-        fixed lg:static top-0 left-0 z-[70] h-screen w-64 bg-black flex flex-col border-r border-white/5 transition-transform duration-300 ease-in-out
+        fixed lg:static top-0 left-0 z-[70] h-[100dvh] w-64 bg-black flex flex-col border-r border-white/5 transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
         {/* Logo Section */}
-        <div className="p-6 pt-8 flex items-center justify-between">
+        <div className="p-6 pt-8 flex items-center justify-between shrink-0">
           <Link href="/" className="flex items-center gap-3">
             <div className="size-8 flex items-center justify-center">
               <img src="/logo.jpg" alt="Voxy Logo" className="w-8 h-8 object-contain" />
@@ -96,8 +96,8 @@ export default function Sidebar({ isOpen, onClose }) {
           </button>
         </div>
         
-        {/* Navigation Items */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto pt-6 custom-scrollbar">
+        {/* Navigation Items - Added min-h-0 to ensure it can shrink */}
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto pt-6 min-h-0 custom-scrollbar">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -123,8 +123,8 @@ export default function Sidebar({ isOpen, onClose }) {
           })}
         </nav>
         
-        {/* Bottom Section */}
-        <div className="p-3 border-t border-white/5 space-y-1 mb-2">
+        {/* Bottom Section - Allowing content to wrap naturally */}
+        <div className="p-3 border-t border-white/5 space-y-1 mb-2 shrink-0">
           {/* Logout */}
           <button 
             onClick={logout}
@@ -139,14 +139,14 @@ export default function Sidebar({ isOpen, onClose }) {
             href={role === 'admin' ? '/lighthouse/profile' : (role === 'business' || role === 'business_owner' ? '/business/settings' : '/customer/settings')}
             className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-[#0a0a0a] border border-white/5 mt-2 hover:border-[#00D18F]/30 transition-all group/profile"
           >
-            <div className="size-10 rounded-full bg-[#00D18F] flex items-center justify-center text-black font-bold text-sm">
+            <div className="size-10 shrink-0 rounded-full bg-[#00D18F] flex items-center justify-center text-black font-bold text-sm">
               {userDisplayName.charAt(0).toUpperCase()}
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-bold text-sm text-white truncate leading-none tracking-tight group-hover/profile:text-[#00D18F] transition-colors">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <div className="font-bold text-sm text-white break-words leading-tight tracking-tight group-hover/profile:text-[#00D18F] transition-colors">
                 {userDisplayName}
               </div>
-              <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-1">
+              <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-1 break-words">
                 {roleLabel}
               </div>
             </div>
