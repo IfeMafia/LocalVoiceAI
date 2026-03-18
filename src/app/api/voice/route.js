@@ -118,6 +118,7 @@ export async function POST(req) {
     const formData = await req.formData();
     const audioBlob = formData.get('audio');
     const conversationId = formData.get('conversationId');
+    const role = formData.get('role'); // Added: Role of the sender ('customer' or 'owner')
 
     if (!audioBlob || !conversationId) {
       return NextResponse.json({ success: false, error: 'Audio file and conversation ID are required' }, { status: 400 });
@@ -129,13 +130,24 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Could not transcribe any speech' }, { status: 400 });
     }
 
-    console.log(`[VOICE] Transcribed: "${transcript}"`);
+    console.log(`[VOICE] Role: ${role}, Transcribed: "${transcript}"`);
 
     // 2. Chat Processing (Ensures scope, context, DB logging)
-    const aiResponseText = await generateChatResponse(conversationId, transcript);
-    console.log(`[VOICE] AI Response: "${aiResponseText}"`);
+    let aiResponseText = null;
+    
+    // ONLY generate AI response if it's a CUSTOMER speaking
+    if (role !== 'owner') {
+      aiResponseText = await generateChatResponse(conversationId, transcript);
+      console.log(`[VOICE] AI Response: "${aiResponseText}"`);
+    } else {
+      // If it's the owner, just save the message to DB and don't trigger AI
+      await db.query(
+        'INSERT INTO messages (conversation_id, sender_type, content) VALUES ($1, $2, $3)',
+        [conversationId, 'owner', transcript]
+      );
+    }
 
-    // 3. Convert Text to Speech (using Edge TTS)
+    // 3. Convert Text to Speech (using Edge TTS) - Only if we have an AI response
     let audioUrl = null;
     if (aiResponseText) {
       audioUrl = await generateSpeech(aiResponseText);

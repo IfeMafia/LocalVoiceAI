@@ -194,32 +194,70 @@ export default function ChatInterface({ business, userName }) {
       const formData = new FormData();
       formData.append('audio', audioBlob);
       formData.append('conversationId', conversationId);
+      formData.append('role', 'customer'); // Identify sender as customer to trigger AI logic
 
       const res = await fetch('/api/voice', { method: 'POST', body: formData });
       const data = await res.json();
+      setIsSending(false); // Stop loading spinner as soon as API is done
 
-      if (data.success && data.audioUrl) {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
+      if (data.success) {
+        // Handle Customer Transcript first
+        setMessages(prev => {
+          if (prev.find(m => m.content === data.text && m.sender_type === 'customer')) return prev;
+          return [...prev, {
+            id: 'u-temp-' + Date.now(),
+            sender_type: 'customer',
+            content: data.text,
+            created_at: new Date().toISOString()
+          }];
+        });
+
+        // Optimistically add the AI response text to the UI for immediate typewriter effect
+        const aiMsgId = 'ai-temp-' + Date.now();
+        const aiMsg = {
+          id: aiMsgId,
+          sender_type: 'ai',
+          content: data.aiText,
+          isNew: true, // Trigger typewriter
+          created_at: new Date().toISOString()
+        };
         
-        const audio = new Audio(data.audioUrl);
-        audioRef.current = audio;
-        audio.addEventListener('ended', () => { setVoiceStatus(null); setPendingAudioUrl(null); });
-        audio.addEventListener('error', () => { setVoiceStatus(null); setPendingAudioUrl(null); });
+        setMessages(prev => {
+          // Prevent duplicate if subscription already added it
+          if (prev.find(m => m.content === data.aiText && m.sender_type === 'ai')) return prev;
+          return [...prev, aiMsg];
+        });
 
-        try {
-          await audio.play();
-          setVoiceStatus('speaking');
-        } catch (e) {
-          setPendingAudioUrl(data.audioUrl);
-          setVoiceStatus(null);
+        if (data.audioUrl) {
+          const audio = new Audio(data.audioUrl);
+          audioRef.current = audio;
+          
+          // Use canplaythrough for more immediate playback once buffered
+          audio.oncanplaythrough = async () => {
+            try {
+              await audio.play();
+              setVoiceStatus('speaking');
+            } catch (e) {
+              console.warn('Autoplay blocked, showing manual play button');
+              setPendingAudioUrl(data.audioUrl);
+            }
+          };
+
+          audio.onended = () => {
+            setVoiceStatus(null);
+            setPendingAudioUrl(null);
+          };
+
+          audio.onerror = () => {
+            console.error('Audio playback error for:', data.audioUrl);
+            setVoiceStatus(null);
+          };
         }
+      } else {
+        setVoiceStatus(null);
       }
     } catch (err) {
-      console.error('Voice error:', err);
-    } finally {
+      console.error('Voice handling error:', err);
       setIsSending(false);
       setVoiceStatus(null);
     }

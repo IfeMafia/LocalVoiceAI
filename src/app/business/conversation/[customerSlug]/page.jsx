@@ -262,8 +262,34 @@ export default function ConversationPage({ params }) {
     }
   };
 
-  const handleDelete = (messageId) => {
-    setMessages(prev => prev.filter(m => m.id !== messageId));
+  const handleAudioReady = async (audioBlob) => {
+    if (!conversation?.id || sending) return;
+    
+    try {
+      setSending(true);
+      const formData = new FormData();
+      formData.append('audio', audioBlob);
+      formData.append('conversationId', conversation.id);
+      formData.append('role', 'owner'); // Identify sender as owner to skip AI logic
+
+      const res = await fetch('/api/voice', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // The API already saved the 'owner' type message to DB
+        // We just let the real-time subscription pick it up or push it manually
+        // For better UX, we can just fetch or rely on subscription
+      } else {
+        throw new Error(data.error || 'Transcription failed');
+      }
+    } catch (error) {
+      console.error('Business Voice Error:', error);
+    } finally {
+      setSending(false);
+    }
   };
 
   if (loading) {
@@ -305,6 +331,7 @@ export default function ConversationPage({ params }) {
         
         <MessageInput 
           onSendMessage={handleSendMessage} 
+          onAudioReady={handleAudioReady}
           onTyping={handleTyping}
           onFileUpload={handleFileUpload}
           isLoading={sending} 
