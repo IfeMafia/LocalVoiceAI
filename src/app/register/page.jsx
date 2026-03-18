@@ -50,11 +50,13 @@ export default function Signup() {
     if (!isPasswordValid) return;
     
     try {
-      await register({
+      const data = await register({
         ...formData,
         role: role
       });
-      router.push('/login?registered=true');
+      if (data?.success) {
+        router.push(`/verify-account?email=${encodeURIComponent(formData.email)}`);
+      }
     } catch (err) {
       // Error handled by useAuth via toast
     }

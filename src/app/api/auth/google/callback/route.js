@@ -55,15 +55,15 @@ export async function GET(req) {
     if (existing.rowCount > 0) {
       user = existing.rows[0];
       await db.query(
-        'UPDATE users SET name = COALESCE(name, $1), logo_url = COALESCE(logo_url, $2), google_id = $3 WHERE email = $4',
+        'UPDATE users SET name = COALESCE(name, $1), logo_url = COALESCE(logo_url, $2), google_id = $3, is_verified = TRUE WHERE email = $4',
         [googleUser.name, googleUser.picture, googleUser.id, googleUser.email]
       );
     } else {
       // Use the role from the state param (passed from register page selection)
       const validRole = ['customer', 'business'].includes(role) ? role : 'customer';
       const result = await db.query(
-        `INSERT INTO users (name, email, role, google_id, logo_url, password_hash) 
-         VALUES ($1, $2, $3, $4, $5, '') RETURNING id, name, email, role`,
+        `INSERT INTO users (name, email, role, google_id, logo_url, password_hash, is_verified) 
+         VALUES ($1, $2, $3, $4, $5, '', TRUE) RETURNING id, name, email, role`,
         [googleUser.name, googleUser.email, validRole, googleUser.id, googleUser.picture]
       );
       user = result.rows[0];

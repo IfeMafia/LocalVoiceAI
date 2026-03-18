@@ -50,9 +50,11 @@ function LoginContent() {
         };
         const target = routes[data.user.role] || routes.business;
         router.push(target);
+      } else if (data?.requiresVerification) {
+        router.push(`/verify-account?email=${encodeURIComponent(data.email)}`);
       }
     } catch (err) {
-      // Error is gracefully handled by the useAuth hook/toast
+      // Errors handled by useAuth
     }
   };
 
