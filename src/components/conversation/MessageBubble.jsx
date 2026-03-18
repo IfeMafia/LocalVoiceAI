@@ -1,10 +1,13 @@
-import { Bot, User, Check } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Check, Copy, Trash2 } from 'lucide-react';
 import Typewriter from '../chat/Typewriter';
 
-const MessageBubble = ({ message, senderType, businessName, onTypeComplete }) => {
+const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conversationId, onDelete }) => {
   const isOwner = senderType === 'owner';
   const isAI = senderType === 'ai';
-  const isCustomer = senderType === 'customer';
+  const [copied, setCopied] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const longPressTimer = useRef(null);
 
   const getSenderLabel = () => {
     if (isOwner) return businessName || 'Business';
@@ -12,8 +15,43 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete }) =>
     return 'Customer';
   };
 
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleLongPressStart = () => {
+    longPressTimer.current = setTimeout(() => setShowDelete(true), 500);
+  };
+
+  const handleLongPressEnd = () => {
+    clearTimeout(longPressTimer.current);
+  };
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    setShowDelete(false);
+    if (!conversationId || !message.id) return;
+    try {
+      await fetch(`/api/conversations/${conversationId}/messages/${message.id}`, { method: 'DELETE' });
+      onDelete?.(message.id);
+    } catch (err) {
+      console.error('Delete message error:', err);
+    }
+  };
+
   return (
-    <div className={`flex flex-col mb-4 group ${isOwner ? 'items-end' : 'items-start'}`}>
+    <div
+      className={`flex flex-col mb-4 group ${isOwner ? 'items-end' : 'items-start'}`}
+      onMouseDown={handleLongPressStart}
+      onMouseUp={handleLongPressEnd}
+      onMouseLeave={handleLongPressEnd}
+      onTouchStart={handleLongPressStart}
+      onTouchEnd={handleLongPressEnd}
+      onClick={() => setShowDelete(false)}
+    >
       <div className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${isOwner ? 'items-end' : 'items-start'}`}>
         <div className={`flex items-center gap-2 mb-1.5 px-1 ${isOwner ? 'flex-row-reverse text-blue-400' : isAI ? 'text-[#00D18F]' : 'text-zinc-500'}`}>
           <span className="text-[10px] font-black uppercase tracking-wider opacity-80">
@@ -39,11 +77,31 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete }) =>
           ) : (
             message.content
           )}
-          
+
+          {/* Action buttons: copy (hover), delete (long press) */}
+          <div className={`absolute -top-3 ${isOwner ? 'left-2' : 'right-2'} flex items-center gap-1 transition-opacity duration-200 ${showDelete ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+            <button
+              onClick={handleCopy}
+              className="p-1 rounded-md bg-[#222] border border-white/10 text-zinc-400 hover:text-white"
+              title="Copy"
+            >
+              {copied ? <Check className="w-3 h-3 text-[#00D18F]" /> : <Copy className="w-3 h-3" />}
+            </button>
+            {showDelete && (
+              <button
+                onClick={handleDelete}
+                className="p-1 rounded-md bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 animate-in fade-in zoom-in-90 duration-150"
+                title="Delete"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
           {isOwner && (
             <div className="absolute -bottom-5 right-0 flex items-center gap-1 opacity-40">
-                <Check className="size-2 text-blue-400" />
-                <span className="text-[8px] font-bold uppercase tracking-widest text-blue-400">Sent</span>
+              <Check className="size-2 text-blue-400" />
+              <span className="text-[8px] font-bold uppercase tracking-widest text-blue-400">Sent</span>
             </div>
           )}
         </div>
