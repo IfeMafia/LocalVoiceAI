@@ -352,7 +352,15 @@ export default function ChatInterface({ business, userName }) {
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
             <button
               onClick={() => {
+                // STOP any previous audio
+                if (audioRef.current) {
+                  audioRef.current.pause();
+                  audioRef.current.currentTime = 0;
+                }
+
                 const audio = new Audio(pendingAudioUrl);
+                audioRef.current = audio;
+                
                 audio.onended = () => {
                   fetch('/api/voice', {
                     method: 'DELETE',
@@ -360,7 +368,14 @@ export default function ChatInterface({ business, userName }) {
                     body: JSON.stringify({ url: pendingAudioUrl })
                   }).catch(() => {});
                   setPendingAudioUrl(null);
+                  audioRef.current = null;
                 };
+
+                audio.onerror = () => {
+                  setPendingAudioUrl(null);
+                  audioRef.current = null;
+                };
+
                 audio.play();
               }}
               className="px-4 py-2 rounded-full bg-[#00D18F] text-black text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl"
