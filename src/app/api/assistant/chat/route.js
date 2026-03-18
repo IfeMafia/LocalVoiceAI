@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { generateAIResponse } from "@/lib/ai/core/generateAIResponse";
-import { generateText } from '@/lib/gemini'; // Keep for other possible uses (like summary) if needed, but local use is generateAIResponse
 import { 
   buildBusinessSummary, 
   shouldIncludeBusinessContext, 
@@ -9,6 +8,7 @@ import {
   summarizeConversation,
   detectIntent
 } from '@/lib/ai-context';
+import { notifyBusiness } from '@/lib/notifications';
 
 export async function POST(req) {
   try {
@@ -51,6 +51,8 @@ export async function POST(req) {
       });
     }
 
+
+
     // Check if we need to summarize first (e.g. if conversation has grown large)
     let convSummary = conv.summary;
     if (!convSummary) {
@@ -70,20 +72,50 @@ export async function POST(req) {
     // 3. Determine if we need full business context injected into System Prompt
     const resolvedCustomerName = conv.actual_customer_name || conv.customer_name || 'Guest';
     let systemInstruction = `CRITICAL: You are speaking with ${resolvedCustomerName}. Always try to use their name naturally in your responses!
-CRITICAL DIRECTIVE: Do NOT include any sender prefixes, names, timestamps, or "AI:" tags. Start immediately with your message text.`;
+CRITICAL DIRECTIVE: Use a ${conv.assistant_tone || 'friendly'} tone.
+CRITICAL DIRECTIVE: Do NOT include any sender prefixes, names, timestamps, or "AI:" tags. Start immediately with your message text.
+CRITICAL SCOPE CONTROL: You ONLY assist with queries related to ${conv.business_name} (${conv.category}). 
+If the user asks about anything unrelated to this business (e.g. politics, unrelated industries, general knowledge not about this business), 
+you MUST NOT answer. Apologize politely, state that it's outside your scope as an assistant for ${conv.business_name}, 
+and redirect them to ask about ${conv.category} or ${conv.business_desc}.
+FAIL-SAFE: If you are unsure whether a request is in-scope, treat it as out-of-scope. Do NOT guess or hallucinate services.`;
 
     const { include: includeBusinessContext, intent } = shouldIncludeBusinessContext(lastMessage, !!convSummary);
     
+    // 1c. After Escalation Check: If already Needs Owner Response, skip AI unless it's a new human request
+    const isEscalated = conv.status === 'Needs Owner Response';
+    if (isEscalated && intent !== 'human_request') {
+       console.log(`[AI-CHAT] Conversation is escalated. Skipping AI interference.`);
+       return NextResponse.json({ 
+         success: true, 
+         message: null,
+         info: 'Conversation escalated to human.'
+       });
+    }
+
     console.log(`🧠 Intent detected: ${intent} | Context injection: ${includeBusinessContext ? 'YES' : 'NO'}`);
     
-    if (includeBusinessContext) {
+    // Handle Human Escalation Intent
+    if (intent === 'human_request') {
+      systemInstruction = `The user wants to speak to a human or the business owner. 
+Acknowledge this politely in a ${conv.assistant_tone || 'professional'} tone. 
+Confirm that you are notifying the owner right now and they will get back to them as soon as possible.
+Do NOT try to answer any other questions in this specific response. Keep it short and reassuring.`;
+      
+      // Trigger backend escalation
+      await notifyBusiness(conversationId, 'high');
+    }
+
+    if (includeBusinessContext && intent !== 'human_request') {
       let aiSummary = conv.ai_summary;
       if (!aiSummary) {
          // Fallback generation if business was created before the optimization
          aiSummary = await buildBusinessSummary(conv.business_id);
       }
       
-      systemInstruction = `You are an AI assistant for a business.\nBusiness Profile: ${aiSummary || 'No details provided.'}\n\n${systemInstruction}`;
+      systemInstruction = `You are an AI assistant for ${conv.business_name}.
+Business Profile: ${aiSummary || 'No details provided.'}
+${systemInstruction}`;
     }
 
     // Add conversation memory summary if it exists
