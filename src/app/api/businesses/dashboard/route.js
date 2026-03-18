@@ -43,6 +43,7 @@ export async function GET(req) {
       `SELECT 
         c.*, 
         u.name as actual_customer_name,
+        u.slug as customer_slug,
         lm.content as last_message,
         lm.created_at as last_message_at
        FROM conversations c
