@@ -19,7 +19,7 @@ export default function Header({ title, onMenuClick, businessLogo }) {
         </h2>
       </div>
 
-      <div className="flex items-center gap-4 sm:gap-6">
+      <div className="flex items-center gap-2 sm:gap-6 shrink-0">
         <ThemeToggle />
         <NotificationsPopover />
         

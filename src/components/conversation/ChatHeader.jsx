@@ -37,8 +37,8 @@ const ChatHeader = ({ name, status, icon: Icon, aiEnabled, aiLabel = "AI", onTog
   };
 
   return (
-    <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-white/[0.03] px-4 py-4 sm:px-6 flex items-center justify-between gap-4 relative z-50 shadow-xl">
-      <div className="flex items-center gap-2 sm:gap-4">
+    <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-white/[0.03] px-3 py-3 md:px-6 md:py-4 flex items-center justify-between gap-2 md:gap-4 relative z-50 shadow-xl shrink-0">
+      <div className="flex items-center gap-2 md:gap-4">
         {showBack && (
           <Button
             variant="ghost"

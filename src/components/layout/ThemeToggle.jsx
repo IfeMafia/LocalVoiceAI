@@ -15,8 +15,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="p-2 h-9 w-9 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 transition-colors">
-        <div className="w-4 h-4" />
+      <button className="p-1.5 h-7 w-7 sm:h-9 sm:w-9 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 transition-colors">
+        <div className="w-3 h-3 sm:w-4 sm:h-4" />
       </button>
     );
   }
@@ -46,10 +46,10 @@ export function ThemeToggle() {
   return (
     <button
       onClick={cycleTheme}
-      className="p-2 h-9 w-9 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all group relative"
+      className="p-1.5 h-7 w-7 sm:h-9 sm:w-9 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all group relative shrink-0"
       title={getLabel()}
     >
-      <div className="transition-transform duration-300 group-active:scale-90">
+      <div className="transition-transform duration-300 group-active:scale-90 scale-75 sm:scale-100">
         {getIcon()}
       </div>
       

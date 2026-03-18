@@ -40,8 +40,8 @@ export default function CustomerChatHistoryPage() {
 
   return (
     <DashboardLayout title="Chat History">
-      <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000 p-4 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="max-w-5xl mx-auto w-full overflow-hidden space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000 p-3 sm:p-4 md:p-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
           <div className="space-y-1">
             <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium mt-2">
               Manage your conversations with local businesses.
@@ -64,45 +64,45 @@ export default function CustomerChatHistoryPage() {
             </div>
           ) : conversations.length > 0 ? (
             conversations.map((chat, idx) => (
-              <Link key={chat.id} href={`/customer/chat/${chat.business_slug}`}>
+              <Link key={chat.id} href={`/customer/chat/${chat.business_slug}`} className="block w-full">
                 <div 
-                  className="group relative bg-white dark:bg-[#18181b] border border-zinc-100 dark:border-white/5 rounded-[2.5rem] p-6 md:p-8 hover:border-[#00D18F]/30 shadow-sm hover:shadow-2xl hover:shadow-[#00D18F]/5 transition-all duration-500 cursor-pointer animate-in fade-in slide-in-from-bottom-4"
+                  className="group relative bg-white dark:bg-[#18181b] border border-zinc-100 dark:border-white/5 rounded-2xl md:rounded-3xl p-4 hover:border-[#00D18F]/30 shadow-sm hover:shadow-xl hover:shadow-[#00D18F]/5 transition-all duration-500 cursor-pointer animate-in fade-in slide-in-from-bottom-4 flex flex-row items-center gap-3 sm:gap-4 w-full"
                   style={{ animationDelay: `${idx * 150}ms` }}
                 >
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
-                    <div className="relative flex-shrink-0">
-                      <div className={`w-16 h-16 sm:w-24 sm:h-24 rounded-[1.25rem] sm:rounded-[1.75rem] overflow-hidden ring-4 sm:ring-8 ring-zinc-50 dark:ring-white/5 shadow-inner group-hover:scale-105 transition-all duration-700 bg-[#00D18F]/10 flex items-center justify-center relative`}>
-                        <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 text-[#00D18F]" />
-                        {chat.unread_count > 0 && (
-                          <div className="absolute -top-1 -right-1 size-6 sm:size-8 bg-[#00D18F] text-black text-[12px] sm:text-[14px] font-black rounded-full flex items-center justify-center border-4 border-white dark:border-[#18181b] shadow-xl animate-pulse">
-                            {chat.unread_count}
-                          </div>
-                        )}
-                      </div>
+                  <div className="relative flex-shrink-0">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl overflow-hidden ring-2 ring-zinc-50 dark:ring-white/5 shadow-inner group-hover:scale-105 transition-all duration-700 bg-[#00D18F]/10 flex items-center justify-center relative shrink-0">
+                      <MessageSquare className="w-6 h-6 md:w-7 md:h-7 text-[#00D18F]" />
                     </div>
-                    
-                    <div className="flex-1 min-w-0 space-y-2 w-full">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <h3 className="font-display font-black text-xl sm:text-2xl text-zinc-900 dark:text-white group-hover:text-[#00D18F] transition-colors tracking-tight truncate">
-                            {chat.business_name || 'Business'}
-                          </h3>
-                          <Badge className="flex-shrink-0 bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 border-none px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-widest">
-                            {chat.status}
-                          </Badge>
-                        </div>
-                        <span className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em] whitespace-nowrap">
-                          {new Date(chat.last_message_at || chat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0 overflow-hidden w-full">
+                    <div className="flex items-center justify-between gap-2 mb-1 min-w-0 overflow-hidden w-full">
+                      <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                        <h3 className="font-display font-bold text-base md:text-lg text-zinc-900 dark:text-white group-hover:text-[#00D18F] transition-colors truncate">
+                          {chat.business_name || 'Business'}
+                        </h3>
+                        <Badge className="flex-shrink-0 bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 border-none px-2 py-0.5 rounded-full text-[9px] md:text-[10px] uppercase font-black tracking-wider">
+                          {chat.status}
+                        </Badge>
                       </div>
-                      <p className="text-zinc-500 dark:text-zinc-400 text-sm sm:text-base font-medium line-clamp-1 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
+                      <span className="text-[10px] md:text-xs text-zinc-400 font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
+                        {new Date(chat.last_message_at || chat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 w-full min-w-0 overflow-hidden">
+                      <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium truncate group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors flex-1 min-w-0 w-full block">
                         {chat.last_message || 'Click to continue your chat...'}
                       </p>
+                      {chat.unread_count > 0 && (
+                        <div className="size-5 md:size-6 bg-[#00D18F] text-black text-[10px] md:text-[11px] font-black rounded-full flex items-center justify-center shadow-md animate-pulse shrink-0">
+                          {chat.unread_count}
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                    <div className="hidden lg:flex items-center justify-center w-14 h-14 rounded-full bg-zinc-50 dark:bg-white/5 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-6 group-hover:translate-x-0 group-hover:bg-[#00D18F]/10">
-                      <ChevronRight className="w-6 h-6 text-[#00D18F]" />
-                    </div>
+                  <div className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-zinc-50 dark:bg-white/5 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-4 group-hover:translate-x-0 group-hover:bg-[#00D18F]/10 shrink-0">
+                    <ChevronRight className="w-4 h-4 text-[#00D18F]" />
                   </div>
                 </div>
               </Link>

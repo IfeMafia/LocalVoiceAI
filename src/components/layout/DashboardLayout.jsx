@@ -71,8 +71,8 @@ export default function DashboardLayout({ children, title }) {
           onMenuClick={() => setIsSidebarOpen(true)}
           businessLogo={user?.business?.logo_url}
         />
-        <main className="flex-1 overflow-y-auto flex flex-col">
-          <div className="flex-1 px-4 sm:px-8 py-2 sm:py-4">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col relative w-full">
+          <div className="flex-1 px-4 sm:px-8 py-2 sm:py-4 relative w-full">
             {children}
           </div>
         </main>

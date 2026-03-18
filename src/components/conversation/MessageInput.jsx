@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Paperclip, Smile, Mic } from 'lucide-react';
+import { Send, Paperclip, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { VoiceButton } from '@/components/chat/VoiceButton';
 
-const MessageInput = ({ onSendMessage, onTyping, isLoading, placeholder = "Write a message..." }) => {
+const MessageInput = ({ onSendMessage, onAudioReady, onTyping, isLoading, placeholder = "Write a message..." }) => {
   const [content, setContent] = useState('');
   const textareaRef = useRef(null);
 
@@ -45,7 +46,7 @@ const MessageInput = ({ onSendMessage, onTyping, isLoading, placeholder = "Write
   };
 
   return (
-    <div className="px-4 py-6 sm:px-10 sm:py-10 bg-black border-t border-white/[0.03] animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="px-2 sm:px-4 py-3 sm:py-6 md:px-10 md:py-10 bg-black border-t border-white/[0.03] animate-in fade-in slide-in-from-bottom-4 duration-700 w-full mb-2 sm:mb-0">
       <form onSubmit={handleSubmit} className="max-w-5xl mx-auto flex items-end gap-2 sm:gap-4 relative group">
         <div className="flex-1 flex items-end gap-1 sm:gap-2 bg-white/[0.02] border border-white/[0.05] rounded-2xl sm:rounded-[2rem] p-1.5 sm:p-2.5 focus-within:ring-4 focus-within:ring-[#00D18F]/5 focus-within:border-[#00D18F]/30 transition-all duration-500 shadow-2xl relative">
           <Button type="button" variant="ghost" size="icon" className="hidden sm:flex text-zinc-500 hover:text-white h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl transition-colors">
@@ -68,21 +69,17 @@ const MessageInput = ({ onSendMessage, onTyping, isLoading, placeholder = "Write
           </Button>
         </div>
         
-        <button
-          type={content.trim() ? "submit" : "button"}
-          disabled={isLoading}
-          className={`size-12 sm:size-16 rounded-2xl sm:rounded-3xl font-bold flex items-center justify-center transition-all duration-500 shadow-xl active:scale-90 shrink-0 ${
-            content.trim() 
-              ? 'bg-[#00D18F] text-black hover:bg-emerald-400 hover:scale-105 shadow-[#00D18F]/20' 
-              : 'bg-white/5 text-zinc-500 hover:bg-white/10'
-          }`}
-        >
-          {content.trim() ? (
+        {content.trim() ? (
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`size-10 sm:size-12 md:size-16 rounded-xl sm:rounded-2xl md:rounded-3xl font-bold flex items-center justify-center transition-all duration-500 shadow-xl active:scale-90 shrink-0 bg-[#00D18F] text-black hover:bg-emerald-400 hover:scale-105 shadow-[#00D18F]/20`}
+          >
             <Send className="size-5 sm:size-6 translate-x-0.5 -translate-y-0.5 transition-transform duration-500" strokeWidth={3} />
-          ) : (
-            <Mic className="size-5 sm:size-6 transition-transform duration-500" strokeWidth={3} />
-          )}
-        </button>
+          </button>
+        ) : (
+          <VoiceButton onAudioReady={onAudioReady} isLoading={isLoading} />
+        )}
       </form>
     </div>
   );
