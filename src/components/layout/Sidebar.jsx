@@ -17,7 +17,6 @@ import { useAuth } from '@/hooks/useAuth';
 export default function Sidebar({ isOpen, onClose }) {
   const { logout, user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const role = user?.role || 'customer';
   const pathname = usePathname();
   const role = pathname.startsWith('/lighthouse') ? 'admin' : (user?.role || 'customer');
 
@@ -52,7 +51,6 @@ export default function Sidebar({ isOpen, onClose }) {
       return [
         { name: 'Chat', href: '/customer/chat', icon: MessageSquare, badge: unreadCount },
         { name: 'Find Business', href: '/customer/find-business', icon: Building2 },
-        { name: 'Bookmarks', href: '/customer/bookmarks', icon: Bookmark },
         { name: 'Settings', href: '/customer/settings', icon: Settings },
       ];
     } else {
