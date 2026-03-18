@@ -1,5 +1,5 @@
 import db from '@/lib/db';
-import { generateText } from '@/lib/gemini';
+import { generateAIResponse } from './ai/core/generateAIResponse';
 
 /**
  * 1. BUSINESS CONTEXT COMPRESSION
@@ -52,8 +52,8 @@ Instructions: ${b.assistant_instructions}
 
   let aiSummary = '';
   try {
-    aiSummary = await generateText(compressionPrompt);
-    aiSummary = aiSummary.trim();
+    const aiResponse = await generateAIResponse(compressionPrompt, "Compress business profiles for systems.");
+    aiSummary = aiResponse.text.trim();
     
     await db.query('UPDATE businesses SET ai_summary = $1 WHERE id = $2', [aiSummary, businessId]);
     return aiSummary;
@@ -79,6 +79,12 @@ export function detectIntent(message) {
 
   // Pattern sets
   const intents = {
+    human_request: [
+      /i (want|need) to (speak|talk) to a (human|person|agent|owner)/,
+      /can i (speak|talk) to a (human|person|agent|owner)/,
+      /let me (speak|talk) to (someone|a human)/,
+      /\b(human|person|agent|owner|support|representative|staff|someone|help me)\b/i
+    ],
     order_request: [
       /i (want|need) to (order|buy|book|get)/,
       /can i (order|get|have)/,
@@ -101,7 +107,7 @@ export function detectIntent(message) {
   };
 
   // Match against sets in priority order
-  for (const intent of ['support', 'order_request', 'business_info']) {
+  for (const intent of ['human_request', 'support', 'order_request', 'business_info']) {
     for (const pattern of intents[intent]) {
       if (pattern.test(lowerMsg)) {
         return intent;
@@ -176,9 +182,10 @@ ${historyText}
   `.trim();
 
   try {
-    const summary = await generateText(summarizePrompt);
-    await db.query('UPDATE conversations SET summary = $1 WHERE id = $2', [summary.trim(), conversationId]);
-    return summary.trim();
+    const aiResponse = await generateAIResponse(summarizePrompt, "Summarize conversations for memory.");
+    const summary = aiResponse.text.trim();
+    await db.query('UPDATE conversations SET summary = $1 WHERE id = $2', [summary, conversationId]);
+    return summary;
   } catch (error) {
     console.error('Error generating conversation summary:', error);
     return null;

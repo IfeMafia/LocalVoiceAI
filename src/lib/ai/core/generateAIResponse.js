@@ -26,11 +26,16 @@ const AI_PROVIDERS = [
 
 /**
  * Robust AI Response Generator with Multi-Provider Fallback
- * @param {Array} messages - Chat history in unified format
+ * @param {Array|string} promptOrMessages - Chat history in unified format or a single string prompt
  * @param {string} systemInstruction - System instructions
  */
-export async function generateAIResponse(messages, systemInstruction) {
+export async function generateAIResponse(promptOrMessages, systemInstruction = "You are a helpful assistant.") {
   let lastError = null;
+  
+  // Normalize input: if it's a string, convert to messages format
+  const messages = typeof promptOrMessages === 'string' 
+    ? [{ role: 'user', parts: [{ text: promptOrMessages }] }]
+    : promptOrMessages;
 
   // 2. UNIFIED REQUEST FUNCTION - Loop through priority order
   for (const provider of AI_PROVIDERS) {
