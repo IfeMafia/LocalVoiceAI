@@ -170,6 +170,8 @@ export default function VerifyAccountPage() {
                   key={idx}
                   ref={inputRefs[idx]}
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleChange(idx, e.target.value)}

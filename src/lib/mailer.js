@@ -17,7 +17,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
  */
 const sendMail = async ({ to, subject, html }) => {
   const mailOptions = {
-    from: `"Voxy AI" <${process.env.EMAIL_USER}>`,
+    from: `"Voxy" <support@voxy.com>`,
     to,
     subject,
     html: `
