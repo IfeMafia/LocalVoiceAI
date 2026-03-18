@@ -42,7 +42,23 @@ export const generateText = async (prompt, options = {}) => {
         generationConfig: options.generationConfig
       });
       
-      const result = await model.generateContent(prompt);
+      const requestPayload = typeof prompt === 'string' 
+        ? prompt 
+        : prompt;
+
+      const generateOptions = {
+        ...(typeof requestPayload === 'object' ? requestPayload : { contents: [{ role: 'user', parts: [{ text: requestPayload }] }] }),
+        generationConfig: options.generationConfig
+      };
+
+      if (options.systemInstruction) {
+        generateOptions.systemInstruction = {
+          role: "system",
+          parts: [{ text: options.systemInstruction }]
+        };
+      }
+
+      const result = await model.generateContent(generateOptions);
       const response = await result.response;
       return response.text();
       

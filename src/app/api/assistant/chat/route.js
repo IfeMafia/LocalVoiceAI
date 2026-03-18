@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { generateText } from '@/lib/gemini';
+import { 
+  buildBusinessSummary, 
+  shouldIncludeBusinessContext, 
+  getRecentMessages, 
+  summarizeConversation 
+} from '@/lib/ai-context';
 
 export async function POST(req) {
   try {
@@ -13,7 +19,7 @@ export async function POST(req) {
 
     // 1. Fetch Conversation and Business Context
     const conversationRes = await db.query(
-      `SELECT c.*, b.name as business_name, b.category, b.assistant_tone, b.assistant_instructions, b.description as business_desc
+      `SELECT c.*, b.name as business_name, b.category, b.assistant_tone, b.assistant_instructions, b.description as business_desc, b.ai_summary
        FROM conversations c
        JOIN businesses b ON c.business_id = b.id
        WHERE c.id = $1`,
@@ -26,47 +32,85 @@ export async function POST(req) {
 
     const conv = conversationRes.rows[0];
 
-    // 2. Fetch recent message history (last 10 messages)
-    const messagesRes = await db.query(
-      `SELECT sender_type, content 
-       FROM messages 
-       WHERE conversation_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT 10`,
-      [conversationId]
-    );
+    // Check if we need to summarize first (e.g. if conversation has grown large)
+    let convSummary = conv.summary;
+    if (!convSummary) {
+      convSummary = await summarizeConversation(conversationId);
+      if (convSummary) conv.summary = convSummary; // Update local ref
+    }
 
-    // Reverse to get chronological order
-    const chatHistory = messagesRes.rows.reverse();
+    // 2. Fetch recent message history (last 5 messages)
+    const chatHistory = await getRecentMessages(conversationId, 5);
+    const lastMessage = chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].content : '';
 
-    // 3. Construct the prompt
-    const prompt = `
-You are an AI assistant for "${conv.business_name}", a business in the ${conv.category} category.
-Business Description: ${conv.business_desc || 'No description provided.'}
-Tone of Voice: ${conv.assistant_tone || 'Professional and helpful'}
-Instructions: ${conv.assistant_instructions || 'Answer customer questions politely and accurately.'}
+    // 3. Determine if we need full business context injected into System Prompt
+    let systemInstruction = `CRITICAL: You are speaking with ${conv.customer_name || 'Guest'}. Always try to use their name naturally in your responses!
+CRITICAL DIRECTIVE: Do NOT include any sender prefixes, names, timestamps, or "AI:" tags. Start immediately with your message text.`;
 
-Customer Name: ${conv.customer_name || 'Guest'}
+    const includeBusinessContext = shouldIncludeBusinessContext(lastMessage, !!convSummary);
+    
+    if (includeBusinessContext) {
+      let aiSummary = conv.ai_summary;
+      if (!aiSummary) {
+         // Fallback generation if business was created before the optimization
+         aiSummary = await buildBusinessSummary(conv.business_id);
+      }
+      
+      systemInstruction = `You are an AI assistant for a business.\nBusiness Profile: ${aiSummary || 'No details provided.'}\n\n${systemInstruction}`;
+    }
 
-Recent Conversation History:
-${chatHistory.map(m => `${m.sender_type.toUpperCase()}: ${m.content}`).join('\n')}
+    // Add conversation memory summary if it exists
+    if (convSummary) {
+      systemInstruction += `\n\nPrevious Conversation Summary: ${convSummary}`;
+    }
 
-Based on the history and business rules, provide a helpful response as the business AI assistant. 
-CRITICAL: You are speaking with ${conv.customer_name || 'Guest'}. Always try to use their name naturally in your responses, especially for greetings or when answering direct inquiries!
-CRITICAL DIRECTIVE: Do NOT include any sender prefixes, names, timestamps, or "AI:" tags at the beginning of your response. Start your response immediately with your message text. Keep it concise and natural.
-`;
+    // 4. Construct structured payload for the AI model
+    let messagesPayload = chatHistory.map(m => ({
+      // Gemini expects 'model' for the AI and 'user' for human
+      role: m.sender_type === 'ai' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    }));
 
-    // 4. Generate AI Message
-    console.log(`🤖 Generating AI response for conversation ${conversationId}...`);
-    const aiResponse = await generateText(prompt);
+    // Gemini API requires the first message to be 'user' and roles to alternate.
+    if (messagesPayload.length > 0 && messagesPayload[0].role === 'model') {
+       messagesPayload.unshift({ role: 'user', parts: [{ text: '[Conversation resumed]' }] });
+    }
+    
+    // Ensure alternating roles
+    const normalizedPayload = [];
+    for (const msg of messagesPayload) {
+      if (normalizedPayload.length === 0) {
+        normalizedPayload.push(msg);
+      } else {
+        const lastMsg = normalizedPayload[normalizedPayload.length - 1];
+        if (lastMsg.role === msg.role) {
+          // Merge consecutive messages from same role
+          lastMsg.parts[0].text += `\\n\\n${msg.parts[0].text}`;
+        } else {
+          normalizedPayload.push(msg);
+        }
+      }
+    }
 
-    // 5. Save AI Message to Database
+    const aiRequest = {
+      contents: normalizedPayload
+    };
+
+    const aiOptions = {
+      systemInstruction
+    };
+
+    // 5. Generate AI Message
+    console.log(`🤖 Generating AI response for conversation ${conversationId}... (Tokens optimized!)`);
+    const aiResponse = await generateText(aiRequest, aiOptions);
+
+    // 6. Save AI Message to Database
     const saveRes = await db.query(
       'INSERT INTO messages (conversation_id, sender_type, content) VALUES ($1, $2, $3) RETURNING *',
       [conversationId, 'ai', aiResponse]
     );
 
-    // 6. Update conversation status if it was 'Needs Owner Response'
+    // 7. Update conversation status if it was 'Needs Owner Response'
     if (conv.status === 'Needs Owner Response') {
       await db.query(
         "UPDATE conversations SET status = 'AI Responding' WHERE id = $1",
