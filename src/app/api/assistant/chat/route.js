@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { generateText } from '@/lib/gemini';
+import { generateAIResponse } from "@/lib/ai/core/generateAIResponse";
+import { generateText } from '@/lib/gemini'; // Keep for other possible uses (like summary) if needed, but local use is generateAIResponse
 import { 
   buildBusinessSummary, 
   shouldIncludeBusinessContext, 
@@ -118,22 +119,14 @@ CRITICAL DIRECTIVE: Do NOT include any sender prefixes, names, timestamps, or "A
       }
     }
 
-    const aiRequest = {
-      contents: normalizedPayload
-    };
-
-    const aiOptions = {
-      systemInstruction
-    };
-
-    // 5. Generate AI Message
-    console.log(`🤖 Generating AI response for conversation ${conversationId}... (Tokens optimized!)`);
-    const aiResponse = await generateText(aiRequest, aiOptions);
+    // 5. Generate AI Message with Robust Fallback
+    console.log(`🤖 Generating AI response for conversation ${conversationId} using Multi-LLM System...`);
+    const aiResponse = await generateAIResponse(normalizedPayload, systemInstruction);
 
     // 6. Save AI Message to Database
     const saveRes = await db.query(
       'INSERT INTO messages (conversation_id, sender_type, content) VALUES ($1, $2, $3) RETURNING *',
-      [conversationId, 'ai', aiResponse]
+      [conversationId, 'ai', aiResponse.text]
     );
 
     // 7. Update conversation status if it was 'Needs Owner Response'

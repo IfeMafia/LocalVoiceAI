@@ -1,0 +1,70 @@
+import { generateGeminiResponse } from "../providers/gemini";
+import { generateGroqResponse } from "../providers/groq";
+import { generateOpenRouterResponse } from "../providers/openrouter";
+import { withTimeout } from "../utils/timeout";
+
+const DEFAULT_TIMEOUT = 10000; // 10 seconds
+
+// 1. PROVIDER PRIORITY SYSTEM
+const AI_PROVIDERS = [
+  {
+    name: "groq",
+    priority: 1,
+    runner: generateGroqResponse
+  },
+  {
+    name: "gemini",
+    priority: 2,
+    runner: generateGeminiResponse
+  },
+  {
+    name: "openrouter",
+    priority: 3,
+    runner: generateOpenRouterResponse
+  }
+];
+
+/**
+ * Robust AI Response Generator with Multi-Provider Fallback
+ * @param {Array} messages - Chat history in unified format
+ * @param {string} systemInstruction - System instructions
+ */
+export async function generateAIResponse(messages, systemInstruction) {
+  let lastError = null;
+
+  // 2. UNIFIED REQUEST FUNCTION - Loop through priority order
+  for (const provider of AI_PROVIDERS) {
+    try {
+      console.log(`📡 [AI-CORE] Trying provider: ${provider.name.toUpperCase()} (Priority: ${provider.priority})`);
+      const start = Date.now();
+
+      // 3 & 4. FAILURE HANDLING + TIMEOUT CONTROL
+      const response = await withTimeout(
+        provider.runner(messages, systemInstruction),
+        DEFAULT_TIMEOUT,
+        provider.name
+      );
+
+      const duration = (Date.now() - start) / 1000;
+      
+      // 7. LOGGING SUCCESS
+      console.log(`✅ [AI-CORE] ${provider.name} succeeded (${duration}s) | Tokens: ${response.tokensUsed || 'N/A'}`);
+      
+      return response;
+
+    } catch (error) {
+      lastError = error;
+      // 3. FAILURE HANDLING - Log retry/fail
+      console.error(`⚠️ [AI-CORE] ${provider.name} failed: ${error.message.split('\n')[0]}. Trying next fallback...`);
+      continue;
+    }
+  }
+
+  // 8. FAIL-SAFE (LAST RESORT)
+  console.error("❌ [AI-CORE] ALL AI PROVIDERS FAILED.");
+  return {
+    text: "I'm having a bit of trouble responding right now. Please try again shortly or I'll reach out to the business owner for you.",
+    provider: "error",
+    error: lastError?.message || "All providers failed"
+  };
+}
