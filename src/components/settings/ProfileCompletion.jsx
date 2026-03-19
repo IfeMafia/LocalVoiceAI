@@ -6,11 +6,13 @@ const ProfileCompletion = ({ completionPercentage }) => {
   const isComplete = completionPercentage >= 80;
 
   return (
-    <div className="bg-[#0A0A0A] border border-white/5 rounded-2xl p-6 shadow-sm">
+    <div className="bg-white dark:bg-[#0A0A0A] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-sm transition-colors duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight mb-1.5">Profile status</h2>
-          <p className="text-zinc-500 text-[15px] font-medium leading-relaxed">
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white tracking-tight mb-1.5 flex items-center gap-3">
+            Profile status
+          </h2>
+          <p className="text-zinc-500 dark:text-zinc-500 text-[15px] font-medium leading-relaxed">
             Complete your profile to become visible to potential customers.
           </p>
         </div>
@@ -22,7 +24,7 @@ const ProfileCompletion = ({ completionPercentage }) => {
               Live on gateway
             </Badge>
           ) : (
-            <Badge variant="outline" className="bg-white/5 border-white/5 text-zinc-500 px-3 py-1.5 rounded-lg flex items-center gap-2 font-bold text-[10px] uppercase tracking-wider">
+            <Badge variant="outline" className="bg-zinc-50 dark:bg-white/5 border-zinc-100 dark:border-white/5 text-zinc-500 px-3 py-1.5 rounded-lg flex items-center gap-2 font-bold text-[10px] uppercase tracking-wider">
               <AlertCircle size={14} />
               Setup incomplete
             </Badge>
@@ -30,7 +32,7 @@ const ProfileCompletion = ({ completionPercentage }) => {
         </div>
       </div>
 
-      <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden shadow-inner">
+      <div className="relative h-2.5 w-full bg-zinc-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner flex items-center">
         <div 
           className="absolute top-0 left-0 h-full bg-[#00D18F] transition-all duration-1000 ease-out rounded-full"
           style={{ width: `${completionPercentage}%` }}

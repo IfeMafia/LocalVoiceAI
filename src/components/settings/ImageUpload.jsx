@@ -71,7 +71,7 @@ export default function ImageUpload({ currentImage, onUpload, folder = 'business
   return (
     <div className="flex flex-col items-start gap-4">
       <div className="relative group">
-        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-zinc-800/50 border-2 border-dashed border-zinc-700 overflow-hidden flex items-center justify-center transition-all hover:border-[#00D18F]/50">
+        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border-2 border-dashed border-zinc-200 dark:border-zinc-700 overflow-hidden flex items-center justify-center transition-all hover:border-[#00D18F]/50 shadow-inner">
           {preview ? (
             <>
               <img 
@@ -88,7 +88,7 @@ export default function ImageUpload({ currentImage, onUpload, folder = 'business
               </button>
             </>
           ) : (
-            <div className="flex flex-col items-center gap-2 text-zinc-500 group-hover:text-[#00D18F] transition-colors">
+            <div className="flex flex-col items-center gap-2 text-zinc-400 dark:text-zinc-500 group-hover:text-[#00D18F] transition-colors">
               <Camera className="w-8 h-8" />
               <span className="text-xs font-medium">Upload Logo</span>
             </div>
@@ -119,10 +119,10 @@ export default function ImageUpload({ currentImage, onUpload, folder = 'business
       </div>
       
       <div className="flex flex-col gap-1">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           Upload your business logo or profile picture
         </p>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">
           Recommended: square image, max 2MB
         </p>
       </div>
