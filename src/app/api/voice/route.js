@@ -4,7 +4,7 @@ import fs from 'fs';
 import fsPromises from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import { generateGoogleSpeech } from '@/lib/ai/utils/googleTts';
+import { generateHybridSpeech } from '@/lib/ai/utils/hybridTts';
 import { detectLanguageGemini } from '@/lib/ai/utils/language';
 import { trackUsage } from '@/lib/tracking';
 
@@ -69,7 +69,7 @@ async function generateChatResponse(conversationId, transcript) {
   };
 }
 
-// Removed generateSpeech (MsEdgeTTS) -> delegated to generateGoogleSpeech in src/lib/ai/utils/googleTts.js
+// Removed generateGoogleSpeech -> delegated to generateHybridSpeech in src/lib/ai/utils/hybridTts.js
 
 export async function POST(req) {
   try {
@@ -142,21 +142,21 @@ export async function POST(req) {
       );
     }
 
-    // 3. Convert Text to Speech (using Google Cloud TTS) - Only if we have an AI response
+    // 3. Convert Text to Speech (using Hybrid TTS: MsEdge Primary, GoogleTTS API Fallback)
     let audioUrl = null;
     if (aiResponseText) {
       const ttsStartTime = Date.now();
-      // Requirement 4 & 5: Google Cloud Generation
-      audioUrl = await generateGoogleSpeech(aiResponseText, detectedLanguage);
+      // Requirement: Free High-quality Generation
+      audioUrl = await generateHybridSpeech(aiResponseText, detectedLanguage);
       const ttsDurationSeconds = Math.round((Date.now() - ttsStartTime) / 1000) || 1;
       
       if (businessId) {
         await trackUsage({
           businessId,
           type: 'tts',
-          tokensUsed: aiResponseText.length, // track characters as tokens for Google TTS
+          tokensUsed: aiResponseText.length, // track characters as tokens for TTS
           duration: ttsDurationSeconds,
-          costEstimate: aiResponseText.length * 0.000016 // GCP Text-to-Speech config pricing estimate
+          costEstimate: aiResponseText.length * 0.000015 // MsEdge rate approximation or 0
         });
       }
     }

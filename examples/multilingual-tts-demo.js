@@ -1,4 +1,4 @@
-import { generateGoogleSpeech } from '../src/lib/ai/utils/googleTts.js';
+import { generateFreeSpeech } from '../src/lib/ai/utils/freeTts.js';
 
 /**
  * 8. Example usage for Voxy Multilingual TTS Feature
@@ -25,7 +25,7 @@ async function runDemo() {
       console.log(`Testing [${language.toUpperCase()}]`);
       console.log(`Input: "${text}"`);
       
-      const audioPath = await generateGoogleSpeech(text, language);
+      const audioPath = await generateFreeSpeech(text, language);
       
       if (audioPath) {
         console.log(`SUCCESS: Audio ready to play in Voxy at: ${audioPath}\n`);
@@ -38,6 +38,6 @@ async function runDemo() {
   }
 }
 
-// To run this demo, ensure environment variables (GOOGLE_APPLICATION_CREDENTIALS) are setup
+// To run this demo, simply run:
 // node examples/multilingual-tts-demo.js
 runDemo();
