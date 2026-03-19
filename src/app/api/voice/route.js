@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import fs from 'fs';
 import fsPromises from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import { generateGoogleSpeech } from '@/lib/ai/utils/googleTts';
 import { detectLanguageGemini } from '@/lib/ai/utils/language';
 import { trackUsage } from '@/lib/tracking';
 
@@ -69,66 +69,7 @@ async function generateChatResponse(conversationId, transcript) {
   };
 }
 
-async function generateSpeech(text, language = 'english') {
-  try {
-    const tempFileName = `tts_${crypto.randomBytes(8).toString('hex')}.mp3`;
-    const tempDir = path.join(process.cwd(), 'public', 'temp_voice');
-    
-    // Ensure directory exists
-    if (!fs.existsSync(tempDir)) {
-      await fsPromises.mkdir(tempDir, { recursive: true });
-    }
-    
-    const filePath = path.join(tempDir, tempFileName);
-    
-    const tts = new MsEdgeTTS();
-    
-    // Voice Mapping for Nigerian context
-    const voiceMap = {
-      'english': 'en-NG-AbeoNeural',
-      'yoruba': 'yo-NG-OluNeural',
-      'hausa': 'ha-NG-AminaNeural',
-      'igbo': 'ig-NG-NkechiNeural'
-    };
-    
-    const selectedVoice = voiceMap[language] || voiceMap['english'];
-    console.log(`[VOICE] Using TTS voice: ${selectedVoice} for language: ${language}`);
-    
-    await tts.setMetadata(selectedVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-    
-    // Use manual stream to fix the weird ENOENT: .../xxx.mp3/audio.mp3 on some systems
-    const stream = tts.toStream(text);
-    const writer = fs.createWriteStream(filePath);
-    stream.audioStream.pipe(writer);
-
-    await new Promise((resolve, reject) => {
-      writer.on('finish', resolve);
-      writer.on('error', (err) => {
-        console.error('Writer Stream Error:', err);
-        reject(err);
-      });
-    });
-    
-    // AUTO-CLEANUP: Schedule file deletion after 15 minutes (as requested: "audio is deleting to early")
-    setTimeout(async () => {
-      try {
-        if (fs.existsSync(filePath)) {
-          await fsPromises.unlink(filePath);
-          console.log(`[VOICE CLEANUP] Auto-deleted ${tempFileName}`);
-        }
-      } catch (err) {
-        if (err.code !== 'ENOENT') {
-          console.error(`[VOICE CLEANUP] Failed to delete ${tempFileName}:`, err);
-        }
-      }
-    }, 15 * 60 * 1000); // 15 minutes
-    
-    return `/temp_voice/${tempFileName}`;
-  } catch (error) {
-    console.error('TTS Error:', error);
-    throw new Error('Text-to-Speech conversion failed');
-  }
-}
+// Removed generateSpeech (MsEdgeTTS) -> delegated to generateGoogleSpeech in src/lib/ai/utils/googleTts.js
 
 export async function POST(req) {
   try {
@@ -201,20 +142,21 @@ export async function POST(req) {
       );
     }
 
-    // 3. Convert Text to Speech (using Edge TTS) - Only if we have an AI response
+    // 3. Convert Text to Speech (using Google Cloud TTS) - Only if we have an AI response
     let audioUrl = null;
     if (aiResponseText) {
       const ttsStartTime = Date.now();
-      audioUrl = await generateSpeech(aiResponseText, detectedLanguage);
+      // Requirement 4 & 5: Google Cloud Generation
+      audioUrl = await generateGoogleSpeech(aiResponseText, detectedLanguage);
       const ttsDurationSeconds = Math.round((Date.now() - ttsStartTime) / 1000) || 1;
       
       if (businessId) {
         await trackUsage({
           businessId,
           type: 'tts',
-          tokensUsed: aiResponseText.length, // track characters as tokens for TTS
+          tokensUsed: aiResponseText.length, // track characters as tokens for Google TTS
           duration: ttsDurationSeconds,
-          costEstimate: aiResponseText.length * 0.000015 // ~$15 per 1M chars
+          costEstimate: aiResponseText.length * 0.000016 // GCP Text-to-Speech config pricing estimate
         });
       }
     }
