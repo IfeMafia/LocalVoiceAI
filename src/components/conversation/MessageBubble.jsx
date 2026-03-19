@@ -32,7 +32,12 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conv
   };
 
   return (
-    <div className={`flex flex-col mb-2 ${isMe ? 'items-end' : 'items-start'} group animate-in fade-in duration-300`}>
+    <div className={`flex flex-col mb-4 ${isMe ? 'items-end' : 'items-start'} group animate-in fade-in duration-300`}>
+      {/* Label for the sender */}
+      <span className={`text-[9px] font-bold uppercase tracking-widest mb-1 mx-1 opacity-40 ${isMe ? 'text-right' : 'text-left'}`}>
+        {isAI ? 'VOXY AI' : (isOwner ? (businessName || 'Business') : 'Customer')}
+      </span>
+      
       <div className={`flex items-end gap-2 max-w-[85%] sm:max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
         {!isMe && (
           <div className="w-6 h-6 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 mb-1">
