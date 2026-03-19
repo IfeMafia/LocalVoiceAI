@@ -93,7 +93,7 @@ export default function CustomerChatHistoryPage() {
                       </span>
                     </div>
                     <p className="text-xs sm:text-sm text-zinc-500 truncate leading-relaxed">
-                      {chat.last_message || 'Continue your conversation...'}
+                      {chat.last_message?.startsWith('[img]') ? '📷 Photo' : (chat.last_message || 'Continue your conversation...')}
                     </p>
                   </div>
 
