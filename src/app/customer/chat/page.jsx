@@ -69,7 +69,11 @@ export default function CustomerChatHistoryPage() {
                       {chat.business_logo_url ? (
                         <img src={chat.business_logo_url} alt={chat.business_name} className="w-full h-full object-cover" />
                       ) : (
-                        <MessageSquare className="w-5 h-5 sm:w-7 sm:h-7 text-[#00D18F]" />
+                        <div className="w-full h-full flex items-center justify-center bg-[#00D18F]/10">
+                          <span className="text-[#00D18F] font-bold text-lg sm:text-2xl tracking-tighter">
+                            {chat.business_name?.charAt(0).toUpperCase() || 'B'}
+                          </span>
+                        </div>
                       )}
                     </div>
                     {chat.unread_count > 0 && (
