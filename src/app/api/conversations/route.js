@@ -18,7 +18,7 @@ export async function GET(req) {
     let result;
     if (user.role === 'customer') {
       const baseQuery = `
-        SELECT c.*, b.name AS business_name, b.slug AS business_slug,
+        SELECT c.*, b.name AS business_name, b.slug AS business_slug, b.logo_url AS business_logo_url,
                lm.content AS last_message,
                lm.created_at AS last_message_at,
                lcm.content AS last_customer_message,
