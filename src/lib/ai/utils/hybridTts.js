@@ -1,19 +1,15 @@
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import * as googleTTS from 'google-tts-api';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import fsPromises from 'fs/promises';
 
 /**
- * Hybrid Multilingual Text-to-Speech
+ * Hybrid Multilingual Text-to-Speech (Serverless-Safe)
  * 
- * PRIMARY: Free Microsoft Edge Neural Voices (High quality Nigerian accents)
- * FALLBACK: Free unofficial Google Translate API (Reliable, no API keys, standard voices)
+ * Returns base64 Data URIs instead of writing to disk to prevent 
+ * Vercel/AWS Lambda read-only filesystem crashes (ENOENT /var/task).
  * 
  * @param {string} text - The input text to convert to speech
  * @param {string} detectedLanguage - english, yoruba, igbo, or hausa
- * @returns {Promise<string>} Path to the generated audio file
+ * @returns {Promise<string>} Base64 audio data URI playable in the browser
  */
 export async function generateHybridSpeech(text, detectedLanguage = 'english') {
   if (!text || typeof text !== 'string' || text.trim() === '') {
@@ -22,21 +18,6 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
   }
 
   const normalizedLang = detectedLanguage?.toLowerCase() || 'english';
-  const tempFileName = `hybrid_tts_${crypto.randomBytes(8).toString('hex')}.mp3`;
-  const tempDir = path.join(process.cwd(), 'public', 'temp_voice');
-  
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
-  }
-  
-  const filePath = path.join(tempDir, tempFileName);
-
-  // Auto cleanup after 15 minutes
-  setTimeout(async () => {
-    try {
-      if (fs.existsSync(filePath)) await fsPromises.unlink(filePath);
-    } catch (err) { }
-  }, 15 * 60 * 1000);
 
   // --- PRIMARY ENGINE: MsEdge Neural Voices ---
   try {
@@ -62,16 +43,20 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
     const tts = new MsEdgeTTS();
     await tts.setMetadata(selectedEdgeVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     
+    // Process stream into buffer in memory
     const stream = tts.toStream(edgeText);
-    const writer = fs.createWriteStream(filePath);
-    stream.audioStream.pipe(writer);
+    const chunks = [];
 
     await new Promise((resolve, reject) => {
-      writer.on('finish', resolve);
-      writer.on('error', reject);
+      stream.audioStream.on('data', chunk => chunks.push(chunk));
+      stream.audioStream.on('end', resolve);
+      stream.audioStream.on('error', reject);
     });
 
-    return `/temp_voice/${tempFileName}`;
+    const audioBuffer = Buffer.concat(chunks);
+    const base64Audio = audioBuffer.toString('base64');
+    
+    return `data:audio/mp3;base64,${base64Audio}`;
 
   } catch (primaryError) {
     console.warn('[HYBRID TTS] Primary Engine (MsEdge) failed. Attempting Fallback...', primaryError.message);
@@ -83,7 +68,7 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
         'yoruba':  'yo',
         'hausa':   'ha',
         'igbo':    'ig',
-        'unsupported': 'en' // Fallback to english if not found
+        'unsupported': 'en' 
       };
 
       let gttsLang = gttsLangMap[normalizedLang];
@@ -96,21 +81,18 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
 
       console.log(`[HYBRID TTS] Using Secondary Engine (Google TTS API) for language code '${gttsLang}'`);
 
-      // google-tts-api automatically handles text > 200 chars by chunking with getAllAudioBase64
       const audioChunks = await googleTTS.getAllAudioBase64(gttsText, {
         lang: gttsLang,
         slow: false,
         host: 'https://translate.google.com',
       });
 
-      // Combine base64 chunks and write to file
       const combinedBuffer = Buffer.concat(
         audioChunks.map(chunk => Buffer.from(chunk.base64, 'base64'))
       );
       
-      fs.writeFileSync(filePath, combinedBuffer);
-
-      return `/temp_voice/${tempFileName}`;
+      const base64Audio = combinedBuffer.toString('base64');
+      return `data:audio/mp3;base64,${base64Audio}`;
       
     } catch (fallbackError) {
       console.error('[HYBRID TTS] Fallback Engine also failed:', fallbackError);

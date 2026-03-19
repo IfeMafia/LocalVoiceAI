@@ -28,7 +28,8 @@ async function runDemo() {
       const audioPath = await generateHybridSpeech(text, language);
       
       if (audioPath) {
-        console.log(`SUCCESS: Audio ready to play in Voxy at: ${audioPath}\n`);
+        const preview = audioPath.length > 50 ? `${audioPath.substring(0, 50)}...` : audioPath;
+        console.log(`SUCCESS: Audio ready to play in Voxy (Base64 URL): ${preview}\n`);
       } else {
         console.log(`SUCCESS: Empty text generation prevented safely.\n`);
       }
