@@ -37,6 +37,14 @@ const MessageInput = ({
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    // Only auto-focus on desktop devices to avoid keyboard popups on mobile
+    const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
 
@@ -53,7 +61,10 @@ const MessageInput = ({
       onTyping?.(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
-        textareaRef.current.focus();
+        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (!isMobile) {
+          textareaRef.current.focus();
+        }
       }
     }
   };
@@ -98,7 +109,7 @@ const MessageInput = ({
   const statusConfig = voiceStatus ? VOICE_STATUS_CONFIG[voiceStatus] : null;
 
   return (
-    <div className="w-full shrink-0 border-t border-zinc-200 dark:border-white/[0.03] bg-white dark:bg-black/40 backdrop-blur-xl px-3 py-3 sm:px-6 sm:py-4 md:px-10 md:py-6 transition-colors duration-500 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+    <div className="w-full shrink-0 border-t border-zinc-200 dark:border-white/[0.03] bg-white dark:bg-black/40 backdrop-blur-xl px-3 py-3 sm:px-6 sm:py-4 transition-colors duration-500 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] pb-safe">
       <form onSubmit={handleSubmit} className="max-w-5xl mx-auto flex flex-col gap-3">
         
         {/* Voice Status Indicator Banner */}
@@ -156,7 +167,6 @@ const MessageInput = ({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 rows={1}
-                autoFocus
                 className="w-full bg-transparent border-none outline-none py-2 text-[15px] text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 resize-none min-h-[40px] max-h-[160px]"
               />
           </div>
