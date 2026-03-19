@@ -71,8 +71,10 @@ Instructions: ${b.assistant_instructions}
 /**
  * 2. INTENT DETECTION
  * Simple regex and keyword matcher to classify user intent without an LLM call.
+ * @param {string} message - The user message
+ * @param {Object} business - The business context (category, description)
  */
-export function detectIntent(message) {
+export function detectIntent(message, business = null) {
   if (!message || typeof message !== 'string') return 'conversation';
 
   const lowerMsg = message.toLowerCase();
@@ -80,38 +82,66 @@ export function detectIntent(message) {
   // Pattern sets
   const intents = {
     human_request: [
-      /i (want|need) to (speak|talk) to a (human|person|agent|owner)/,
+      /\b(human|owner|agent|person|someone|representative|staff|speak to someone|talk to someone|speak to a person)\b/i,
+      /speak with (the|a) (owner|manager|person|human)/,
       /can i (speak|talk) to a (human|person|agent|owner)/,
-      /let me (speak|talk) to (someone|a human)/,
-      /\b(human|person|agent|owner|support|representative|staff|someone|help me)\b/i
+      /let me (speak|talk) to (someone|a human)/
     ],
     order_request: [
-      /i (want|need) to (order|buy|book|get)/,
-      /can i (order|get|have)/,
-      /(order|buy|book|get) (some|a|an)/,
-      /\b(order|buy|purchase|book|reserve)\b/
+      /i (want|need) to (order|buy|book|get|purchase)/,
+      /can i (order|get|have|buy|book)/,
+      /(order|buy|book|get|purchase) (some|a|an)/,
+      /\b(order|buy|purchase|book|reserve|checkout|payment|price|cost)\b/
     ],
     support: [
-      /(not working|broken|delay)/,
-      /where is my (order|stuff)/,
-      /i have a (problem|issue|complaint)/,
-      /\b(problem|issue|complain|complaint|help|refund|missing|wrong)\b/
+      /(not working|broken|delay|failed|error|wrong|missing)/,
+      /where is my (order|stuff|package|delivery)/,
+      /i have a (problem|issue|complaint|trouble)/,
+      /\b(problem|issue|complain|complaint|help|refund|missing|wrong|broken|fix)\b/
     ],
     business_info: [
-      /what do you (sell|offer|have)/,
+      /what do you (sell|offer|have|do)/,
       /how much (is it|does it cost)/,
       /are you (open|closed)/,
       /where are you (located|based)/,
-      /\b(price|cost|costing|service|menu|offer|available|open|close|hours|location|address)\b/
+      /\b(price|cost|costing|service|menu|offer|available|open|close|hours|location|address|services|products)\b/
     ]
   };
 
-  // Match against sets in priority order
-  for (const intent of ['human_request', 'support', 'order_request', 'business_info']) {
+  // 1. Check for Human/Support Escalation (Highest Priority)
+  for (const pattern of intents.human_request) {
+    if (pattern.test(lowerMsg)) return 'human_request';
+  }
+
+  // 2. Check for Support/Problem
+  for (const pattern of intents.support) {
+    if (pattern.test(lowerMsg)) return 'support';
+  }
+
+  // 3. Check for Out of Scope (if business context provided)
+  if (business && (business.category || business.description)) {
+    const scopeKeywords = [
+      ...(business.category ? business.category.toLowerCase().split(/[ ,&]+/) : []),
+      ...(business.description ? business.description.toLowerCase().split(/[ ,&]+/).filter(w => w.length > 3) : [])
+    ];
+    
+    // Very basic check: if message is long enough and contains none of the scope keywords 
+    // AND contains keywords from "general knowledge" or "other categories", mark as out of scope.
+    const unrelatedKeywords = ['weather', 'politics', 'news', 'joke', 'poem', 'story', 'history', 'science', 'math', 'code', 'programming'];
+    const matchesUnrelated = unrelatedKeywords.some(kw => lowerMsg.includes(kw));
+    
+    // If it's short, it might just be greeting
+    if (lowerMsg.length > 10 && matchesUnrelated) {
+      // Check if it matches any business keywords
+      const matchesBusiness = scopeKeywords.some(kw => kw.length > 2 && lowerMsg.includes(kw));
+      if (!matchesBusiness) return 'out_of_scope';
+    }
+  }
+
+  // 4. Check for Business Info / Order
+  for (const intent of ['business_info', 'order_request']) {
     for (const pattern of intents[intent]) {
-      if (pattern.test(lowerMsg)) {
-        return intent;
-      }
+      if (pattern.test(lowerMsg)) return intent;
     }
   }
 
@@ -121,14 +151,15 @@ export function detectIntent(message) {
 /**
  * 3. CONDITIONAL CONTEXT INJECTION
  * Determines if the business context should be sent to the AI.
- * We send it if there's no conversation summary (meaning it's new) 
- * OR if the message intent requires core business knowledge.
+ * @param {string} messageContent - Current user message
+ * @param {Object} business - Business object
+ * @param {boolean} hasSummary - Whether conversation has a summary
  */
-export function shouldIncludeBusinessContext(messageContent, hasSummary) {
-  // Always include if the conversation is new enough that we haven't summarized it yet
-  if (!hasSummary) return { include: true, intent: 'new_conversation' };
+export function shouldIncludeBusinessContext(messageContent, business, hasSummary) {
+  const intent = detectIntent(messageContent, business);
 
-  const intent = detectIntent(messageContent);
+  // Always include if the conversation is new enough that we haven't summarized it yet
+  if (!hasSummary) return { include: true, intent: intent === 'conversation' ? 'new_conversation' : intent };
   
   if (intent === 'business_info' || intent === 'order_request' || intent === 'support') {
     return { include: true, intent };
@@ -138,9 +169,20 @@ export function shouldIncludeBusinessContext(messageContent, hasSummary) {
 }
 
 /**
- * 4. CONVERSATION WINDOW LIMIT
- * Fetch only the most recent messages. limit defaults to 5.
+ * 4. CONVERSATION WINDOW LIMIT & PAYLOAD BUILDING
+ * Ensures we don't exceed token limits by selecting appropriate message history.
+ * Rule: Last 5 messages OR (Summary + Last 2 messages)
  */
+export async function buildAIPayload(conversationId, hasSummary) {
+  const limit = hasSummary ? 2 : 5;
+  const messages = await getRecentMessages(conversationId, limit);
+  
+  return messages.map(m => ({
+    role: m.sender_type === 'ai' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+}
+
 export async function getRecentMessages(conversationId, limit = 5) {
   const res = await db.query(
     `SELECT sender_type, content 
