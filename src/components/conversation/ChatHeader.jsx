@@ -22,14 +22,14 @@ const ChatHeader = ({ name, status, icon: Icon, aiEnabled, aiLabel = "AI", onTog
   const isOnline = status === 'Online' || status === 'Active Now';
 
   return (
-    <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/5 px-4 py-3 flex items-center justify-between shrink-0">
+    <div className="sticky top-0 z-50 bg-white/80 dark:bg-black/95 backdrop-blur-md border-b border-zinc-200 dark:border-white/5 px-4 py-3 flex items-center justify-between shrink-0 transition-all duration-500 shadow-sm dark:shadow-none">
       <div className="flex items-center gap-3 min-w-0">
         {showBack && (
           <Button
             variant="ghost"
             size="icon"
             onClick={() => (backUrl ? router.push(backUrl) : router.back())}
-            className="h-8 w-8 hover:bg-white/5 text-zinc-400"
+            className="h-8 w-8 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400"
           >
             <ChevronLeft className="w-5 h-5" />
           </Button>
@@ -37,7 +37,7 @@ const ChatHeader = ({ name, status, icon: Icon, aiEnabled, aiLabel = "AI", onTog
         
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="relative flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-inner">
               {typeof Icon === 'string' ? (
                 <img src={Icon} alt={name} className="w-full h-full object-cover" />
               ) : Icon ? (
@@ -47,15 +47,15 @@ const ChatHeader = ({ name, status, icon: Icon, aiEnabled, aiLabel = "AI", onTog
               )}
             </div>
             {isOnline && (
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00D18F] border-2 border-black rounded-full" />
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00D18F] border-2 border-white dark:border-black rounded-full shadow-sm" />
             )}
           </div>
           
           <div className="min-w-0">
-            <h1 className="text-sm font-bold text-white truncate leading-none mb-1">
+            <h1 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-none mb-1">
               {name || 'Business'}
             </h1>
-            <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest whitespace-nowrap">
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest whitespace-nowrap">
               {isOnline ? 'Online' : 'AI Assistant'}
             </span>
           </div>
@@ -63,8 +63,8 @@ const ChatHeader = ({ name, status, icon: Icon, aiEnabled, aiLabel = "AI", onTog
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden sm:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{aiLabel}</span>
+        <div className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-white/5 px-3 py-1.5 rounded-full border border-zinc-200 dark:border-white/5 shadow-inner">
+          <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{aiLabel}</span>
           <Switch checked={aiEnabled} onCheckedChange={onToggleAi} className="scale-75 translate-x-1" />
         </div>
         

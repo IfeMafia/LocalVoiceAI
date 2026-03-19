@@ -98,7 +98,7 @@ const MessageInput = ({
   const statusConfig = voiceStatus ? VOICE_STATUS_CONFIG[voiceStatus] : null;
 
   return (
-    <div className="w-full shrink-0 border-t border-zinc-200 dark:border-white/[0.03] bg-white/40 dark:bg-black/40 backdrop-blur-xl px-3 py-3 sm:px-6 sm:py-4 md:px-10 md:py-6 transition-colors duration-500">
+    <div className="w-full shrink-0 border-t border-zinc-200 dark:border-white/[0.03] bg-white dark:bg-black/40 backdrop-blur-xl px-3 py-3 sm:px-6 sm:py-4 md:px-10 md:py-6 transition-colors duration-500 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
       <form onSubmit={handleSubmit} className="max-w-5xl mx-auto flex flex-col gap-3">
         
         {/* Voice Status Indicator Banner */}
@@ -143,7 +143,7 @@ const MessageInput = ({
           <button 
             type="button" 
             onClick={() => fileInputRef.current?.click()}
-            className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-[#00D18F] hover:bg-[#00D18F]/10 transition-all active:scale-95"
+            className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-[#00D18F] hover:bg-zinc-100 dark:hover:bg-[#00D18F]/10 transition-all active:scale-95"
           >
             <Paperclip size={20} />
           </button>
@@ -157,7 +157,7 @@ const MessageInput = ({
                 placeholder={placeholder}
                 rows={1}
                 autoFocus
-                className="w-full bg-transparent border-none outline-none py-2 text-[15px] text-zinc-800 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 resize-none min-h-[40px] max-h-[160px]"
+                className="w-full bg-transparent border-none outline-none py-2 text-[15px] text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 resize-none min-h-[40px] max-h-[160px]"
               />
           </div>
 

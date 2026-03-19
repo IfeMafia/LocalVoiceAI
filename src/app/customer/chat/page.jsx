@@ -39,10 +39,10 @@ export default function CustomerChatHistoryPage() {
   return (
     <DashboardLayout title="My Chats">
       <div className="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-10 animate-in fade-in duration-500">
-        <div className="flex flex-row items-center justify-between border-b border-white/5 pb-6 sm:pb-10">
+        <div className="flex flex-row items-center justify-between border-b border-zinc-100 dark:border-white/5 pb-6 sm:pb-10">
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-2">Conversations</h1>
-            <p className="text-[10px] sm:text-xs font-medium text-zinc-500 uppercase tracking-widest">
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Conversations</h1>
+            <p className="text-[10px] sm:text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
               {conversations.length} Active chats
             </p>
           </div>
@@ -63,13 +63,13 @@ export default function CustomerChatHistoryPage() {
           ) : conversations.length > 0 ? (
             conversations.map((chat) => (
               <Link key={chat.id} href={`/customer/chat/${chat.business_slug}`} className="block">
-                <div className="group bg-zinc-950/50 border border-white/5 p-4 sm:p-6 rounded-3xl flex items-center gap-4 transition-all hover:bg-zinc-900 hover:border-white/10 active:scale-[0.99]">
+                <div className="group bg-white dark:bg-zinc-950/50 border border-zinc-200 dark:border-white/5 p-4 sm:p-6 rounded-3xl flex items-center gap-4 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:border-zinc-300 dark:hover:border-white/10 active:scale-[0.99] shadow-sm hover:shadow-xl dark:shadow-none">
                   <div className="relative shrink-0">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-inner">
                       {chat.business_logo_url ? (
                         <img src={chat.business_logo_url} alt={chat.business_name} className="w-full h-full object-cover" />
                       ) : (
-                        <MessageSquare className="w-5 h-5 sm:w-7 sm:h-7 text-[#00D18F]/40" />
+                        <MessageSquare className="w-5 h-5 sm:w-7 sm:h-7 text-[#00D18F]" />
                       )}
                     </div>
                     {chat.unread_count > 0 && (
@@ -81,7 +81,7 @@ export default function CustomerChatHistoryPage() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-sm sm:text-lg font-bold text-white truncate group-hover:text-[#00D18F] transition-colors">
+                      <h3 className="text-sm sm:text-lg font-bold text-zinc-900 dark:text-white truncate group-hover:text-[#00D18F] transition-colors leading-tight">
                         {chat.business_name}
                       </h3>
                       <span className="text-[10px] text-zinc-600 font-medium">
@@ -100,12 +100,12 @@ export default function CustomerChatHistoryPage() {
               </Link>
             ))
           ) : (
-            <div className="text-center py-24 bg-zinc-950/30 rounded-[3rem] border border-dashed border-white/5">
-              <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                <MessageSquare className="w-6 h-6 text-zinc-700" />
+            <div className="text-center py-24 bg-zinc-50 dark:bg-zinc-950/30 rounded-[3rem] border border-dashed border-zinc-200 dark:border-white/5">
+              <div className="w-16 h-16 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-zinc-100 dark:border-white/5 shadow-sm">
+                <MessageSquare className="w-6 h-6 text-zinc-400 dark:text-zinc-700" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">No active chats</h3>
-              <p className="text-sm text-zinc-500 max-w-[200px] mx-auto mb-8">Ready to connect with a business? Start your first chat today.</p>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">No active chats</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-500 max-w-[200px] mx-auto mb-8 font-medium">Ready to connect with a business? Start your first chat today.</p>
               <Link href="/customer/find-business">
                 <Button className="rounded-full bg-white text-black hover:bg-zinc-200 h-11 px-8">
                   Browse Businesses

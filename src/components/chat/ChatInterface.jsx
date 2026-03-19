@@ -370,7 +370,7 @@ export default function ChatInterface({ business, userName }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-4 bg-black">
+      <div className="flex flex-col items-center justify-center h-full space-y-4 bg-white dark:bg-black transition-colors duration-500">
         <Loader2 className="w-8 h-8 animate-spin text-[#00D18F]/50" />
         <p className="text-zinc-600 text-[10px] uppercase tracking-widest font-bold">Connecting</p>
       </div>
@@ -390,7 +390,7 @@ export default function ChatInterface({ business, userName }) {
         backUrl="/customer/chat"
       />
 
-      <div className="flex-1 overflow-hidden relative flex flex-col bg-black">
+      <div className="flex-1 overflow-hidden relative flex flex-col bg-white dark:bg-[#0A0A0A] transition-colors duration-500">
         <MessageList 
           messages={messages.map(m => ({ ...m, sender_type: m.role || m.sender_type }))} 
           typingUser={typingUser}

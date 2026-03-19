@@ -38,8 +38,8 @@ export const VoiceButton = ({ onAudioReady, isLoading }) => {
           isRecording 
             ? 'bg-red-500 text-white border-red-400' 
             : isLoading
-              ? 'bg-white/5 text-zinc-600 cursor-not-allowed'
-              : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'
+              ? 'bg-zinc-100 dark:bg-white/5 text-zinc-600 cursor-not-allowed'
+              : 'bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 shadow-sm'
         }`}
         title={error || (isRecording ? "Stop Recording" : "Start Transcribing")}
       >
