@@ -91,8 +91,8 @@ export const useVoiceRecorder = (options = {}) => {
               : '')
         : '';
 
-      const options = mimeType ? { mimeType } : undefined;
-      const mediaRecorder = new MediaRecorder(stream, options);
+      const recorderOptions = mimeType ? { mimeType } : undefined;
+      const mediaRecorder = new MediaRecorder(stream, recorderOptions);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -110,6 +110,12 @@ export const useVoiceRecorder = (options = {}) => {
       if (AudioContext) {
         const audioContext = new AudioContext();
         audioContextRef.current = audioContext;
+        
+        // [IMPORTANT] Mobile browsers often start AudioContext in 'suspended' state
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
+
         const analyser = audioContext.createAnalyser();
         const source = audioContext.createMediaStreamSource(stream);
         source.connect(analyser);
@@ -125,11 +131,12 @@ export const useVoiceRecorder = (options = {}) => {
           const sum = dataArray.reduce((acc, val) => acc + val, 0);
           const avg = sum / dataArray.length;
           
-          if (avg < 15) { // 15 is a standard noise floor threshold
+          // Slightly higher threshold (20) for better mobile reliability
+          if (avg < 20) { 
             if (!silenceStartRef.current) {
               silenceStartRef.current = Date.now();
             } else if (Date.now() - silenceStartRef.current > 2000) {
-              // 2 seconds of absolute silence reached!
+              // 2 seconds of silence reached!
               stopRecording().then(blob => {
                  if (blob && options.onAutoStop) {
                     options.onAutoStop(blob);
