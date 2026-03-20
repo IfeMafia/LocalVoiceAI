@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdmin, adminError } from '@/lib/adminAuth';
 import db from '@/lib/db';
+import { logAdminAction } from '@/lib/admin-engine/audit';
 
 export async function GET() {
   const auth = await isAdmin();
@@ -14,6 +15,11 @@ export async function GET() {
       aiModel: 'gemini-2.0-flash',
       apiKeyRotation: 'monthly',
       platformNotification: 'Voxy system update scheduled for midnight.',
+      costConfig: { // NEW: Per-model cost configuration
+        'gemini-2.0-flash': 0.0001,
+        'gemini-1.5-pro': 0.001,
+        'gpt-4o': 0.005
+      }
     };
     return NextResponse.json({ success: true, settings });
   } catch (error) {
@@ -31,6 +37,15 @@ export async function POST(request) {
       'INSERT INTO system_config (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
       ['global_settings', settings]
     );
+
+    // LOG ACTION
+    await logAdminAction({
+      adminEmail: auth.user?.email,
+      action: 'SETTINGS_UPDATE',
+      entityType: 'system',
+      details: 'Global configuration updated.'
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
