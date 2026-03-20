@@ -5,22 +5,18 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { 
   Users, 
   Search, 
-  MoreVertical, 
-  Calendar, 
   Shield, 
   User, 
-  Building2, 
-  CheckCircle2, 
-  XCircle,
   Loader2,
   Lock,
   Mail,
   Filter,
-  Eye,
   Trash2,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import toast from 'react-hot-toast'; // Assuming toast is from react-hot-toast
+import toast from 'react-hot-toast';
+import { Badge } from '@/components/ui/badge';
 
 export default function AdminCustomersPage() {
   const { user: currentUser } = useAuth();
@@ -39,7 +35,7 @@ export default function AdminCustomersPage() {
         }
       } catch (error) {
         console.error('Error fetching customers:', error);
-        toast.error('Failed to load customer records');
+        toast.error('Failed to load user records');
       } finally {
         setLoading(false);
       }
@@ -57,7 +53,7 @@ export default function AdminCustomersPage() {
       const data = await res.json();
       if (data.success) {
         setCustomers(customers.filter(u => u.id !== id));
-        toast.success('Customer deleted successfully');
+        toast.success('User deleted successfully');
       } else {
         toast.error(data.error || 'Delete failed');
       }
@@ -84,7 +80,7 @@ export default function AdminCustomersPage() {
       const data = await res.json();
       if (data.success) {
         setCustomers(customers.map(customer => customer.id === u.id ? { ...customer, role: newRole } : customer));
-        toast.success(`Customer ${action}d successfully`);
+        toast.success(`User ${action}d successfully`);
       } else {
         toast.error(data.error || 'Status update failed');
       }
@@ -101,153 +97,121 @@ export default function AdminCustomersPage() {
     u.role?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const isAdmin = true; // BYPASS FOR TESTING
-
-  if (!isAdmin && !loading) {
-    // This will usually be caught by middleware, but good as a double check
-    return (
-      <DashboardLayout title="Access Denied">
-        <div className="flex flex-col items-center justify-center p-20 bg-zinc-950 rounded-3xl border border-white/5 shadow-2xl">
-          <div className="size-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-6">
-            <Lock className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-black text-white mb-2">Unauthorized Access</h2>
-          <p className="text-zinc-500 max-w-sm text-center font-bold text-sm uppercase tracking-wider">
-            This module is reserved for platform administrators only.
-          </p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   if (loading) {
     return (
-      <DashboardLayout title="Customer Management">
+      <DashboardLayout title="Users">
         <div className="flex flex-col items-center justify-center p-20 min-h-[60vh] text-zinc-500 space-y-4">
-          <Loader2 className="w-10 h-10 animate-spin text-[#00D18F]" />
-          <p className="font-black uppercase tracking-[0.2em] text-[10px]">Loading Customer Directory...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-voxy-primary" />
+          <p className="text-[13px] font-medium text-zinc-500">Loading user records...</p>
         </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="Customer Management">
-      <div className="space-y-10 pb-10">
-        {/* Header Header */}
-        <div className="flex flex-col md:flex-row gap-6 md:items-end justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-block px-3 py-1 bg-[#00D18F]/10 text-[#00D18F] text-[10px] font-black uppercase tracking-widest rounded-full border border-[#00D18F]/20">
-                Platform Customers
-              </span>
-              <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest ml-1">{filteredCustomers.length} Total Customers</span>
-            </div>
-            <h1 className="text-4xl font-black text-white tracking-tight">Customer Directory</h1>
+    <DashboardLayout title="User Directory">
+      <div className="max-w-[1400px] mx-auto pt-8 pb-32 space-y-10">
+        
+        {/* Header section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-white tracking-tight">User Directory</h1>
+            <p className="text-[15px] text-zinc-500">
+              Manage platform users, roles, and administrative access.
+            </p>
           </div>
           
-          <div className="flex gap-3">
-             <div className="relative group min-w-[300px]">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-white transition-colors" />
+          <div className="flex items-center gap-3">
+             <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-voxy-primary transition-colors" />
                 <input 
                   type="text" 
-                  placeholder="SEARCH USERS..." 
-                  className="w-full bg-[#0a0a0a] border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-white text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-[#00D18F]/50 transition-all placeholder:text-zinc-700"
+                  placeholder="Search users..." 
+                  className="bg-[#0A0A0A] border border-white/5 text-white text-[13px] font-medium rounded-xl pl-11 pr-4 h-11 focus:outline-none focus:border-voxy-primary/40 focus:bg-[#0F0F0F] transition-all w-full md:w-72"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
              </div>
-             <button className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-white/50 hover:text-white transition-all">
-                <Filter className="w-5 h-5" />
+             <button className="h-11 px-5 bg-[#0A0A0A] text-zinc-500 font-medium text-[13px] rounded-xl hover:text-white hover:border-white/20 transition-all border border-white/5 flex items-center gap-3">
+                <Filter className="w-4 h-4" /> Filter
              </button>
           </div>
         </div>
 
-        {/* User Table */}
-        <div className="bg-[#050505] border border-white/5 rounded-[40px] shadow-2xl overflow-hidden">
+        {/* Directory Table */}
+        <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-zinc-900/50">
-                  <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Name / Email</th>
-                  <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Role</th>
-                  <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Joined Date</th>
-                  <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>
+                <tr className="border-b border-white/[0.03] bg-white/[0.01]">
+                  <th className="py-5 px-8 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider">User</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider">Access Role</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider">Registration</th>
+                  <th className="py-5 px-8 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-white/[0.02]">
                 {filteredCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="py-32 text-center">
+                    <td colSpan="4" className="py-32 text-center text-zinc-600">
                       <div className="flex flex-col items-center">
-                        <User className="size-12 text-zinc-800 mb-4" />
-                        <span className="text-zinc-600 font-black uppercase tracking-widest text-xs">No matching customer records found</span>
+                        <Users size={32} className="text-zinc-800 mb-4" />
+                        <p className="text-[13px] font-medium text-zinc-600">No matching user records found</p>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   filteredCustomers.map((u) => (
-                    <tr key={u.id} className="group hover:bg-white/[0.02] transition-colors">
-                      <td className="py-8 px-8">
-                        <div className="flex items-center gap-5">
-                          <div className="size-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center group-hover:bg-[#00D18F]/10 group-hover:border-[#00D18F]/30 transition-all relative">
-                            {u.role === 'admin' ? (
-                               <Shield className="w-6 h-6 text-[#00D18F]" />
-                            ) : (
-                               <User className="w-6 h-6 text-zinc-500 group-hover:text-white" />
-                            )}
-                            <div className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-[#050505] ${u.role === 'admin' ? 'bg-[#00D18F]' : 'bg-blue-500'}`}></div>
+                    <tr key={u.id} className="group hover:bg-white/[0.01] transition-all">
+                      <td className="py-5 px-8">
+                        <div className="flex items-center gap-4">
+                          <div className={`size-12 rounded-xl border flex items-center justify-center transition-all ${u.role === 'admin' ? 'bg-voxy-primary/10 border-voxy-primary/20 text-voxy-primary' : 'bg-white/5 border-white/5 text-zinc-500'}`}>
+                            {u.role === 'admin' ? <Shield size={20} /> : <User size={20} />}
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-black text-white group-hover:text-[#00D18F] transition-colors text-base truncate">{u.name || 'Anonymous Object'}</div>
-                            <div className="flex items-center gap-2 text-zinc-500 text-xs font-bold mt-1">
-                               <Mail className="w-3 h-3" />
-                               {u.email}
-                            </div>
+                          <div>
+                            <p className="font-bold text-white group-hover:text-voxy-primary transition-colors tracking-tight text-[15px]">{u.name || 'Unknown User'}</p>
+                            <p className="text-[12px] font-medium text-zinc-500 lowercase mt-0.5">{u.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-8 px-8">
-                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                          u.role === 'admin' 
-                            ? "bg-red-500/10 text-red-500 border-red-500/20" 
-                            : u.role === 'business' || u.role === 'business_owner'
-                              ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                              : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
-                        }`}>
-                          {u.role === 'admin' && <Lock className="w-2.5 h-2.5" />}
-                          {u.role || 'Unassigned'}
-                        </span>
+                      <td className="py-5 px-6">
+                        <Badge variant="outline" className={`
+                          text-[10px] font-medium px-3 py-0.5 border-0
+                          ${u.role === 'admin' ? 'bg-red-500/10 text-red-500' :
+                            ['business', 'business_owner', 'owner'].includes(u.role) ? 'bg-blue-500/10 text-blue-500' :
+                            'bg-zinc-500/10 text-zinc-500'}
+                        `}>
+                          {u.role || 'User'}
+                        </Badge>
                       </td>
-                      <td className="py-8 px-8">
-                        <div className="flex flex-col">
-                           <span className="text-sm font-bold text-zinc-300">{new Date(u.created_at).toLocaleDateString()}</span>
-                           <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-0.5">Joined</span>
+                      <td className="py-5 px-6">
+                        <div>
+                          <p className="text-[13px] font-medium text-white tabular-nums">{new Date(u.created_at).toLocaleDateString()}</p>
+                          <p className="text-[11px] font-medium text-zinc-600 mt-0.5">Registration date</p>
                         </div>
                       </td>
-                      <td className="py-8 px-8 text-right">
+                      <td className="py-5 px-8 text-right">
                         <div className="flex items-center justify-end gap-2">
-                           <button 
+                          <button 
                              onClick={() => handleToggleAdmin(u)}
                              disabled={actionLoading === u.id || u.id === currentUser?.id}
-                             title={u.role === 'admin' ? "Demote to User" : "Promote to Admin"}
-                             className={`p-2.5 rounded-xl border transition-all ${
+                             title={u.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
+                             className={`h-9 w-9 flex items-center justify-center rounded-lg border transition-all ${
                                u.role === 'admin' 
                                  ? "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20" 
-                                 : "bg-zinc-900 border-white/5 text-zinc-500 hover:text-[#00D18F] hover:border-[#00D18F]/30"
-                             } ${actionLoading === u.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                           >
-                              {actionLoading === u.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
-                           </button>
-                           <button 
+                                 : "bg-white/5 border-white/5 text-zinc-500 hover:text-voxy-primary hover:border-voxy-primary/30"
+                             }`}
+                          >
+                             {actionLoading === u.id ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
+                          </button>
+                          <button 
                              onClick={() => handleDelete(u.id)}
                              disabled={actionLoading === u.id || u.id === currentUser?.id}
-                             className={`p-2.5 rounded-xl bg-zinc-900 border border-white/5 text-zinc-500 hover:text-red-500 hover:border-red-500/30 transition-all ${
-                               actionLoading === u.id ? 'opacity-50 cursor-not-allowed' : ''
-                             }`}
-                           >
-                              {actionLoading === u.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                           </button>
+                             title="Delete User"
+                             className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-zinc-500 hover:text-red-500 hover:border-red-500/30 transition-all"
+                          >
+                             {actionLoading === u.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -256,20 +220,17 @@ export default function AdminCustomersPage() {
               </tbody>
             </table>
           </div>
-          
-          {/* Pagination Placeholder */}
-          <div className="p-8 bg-zinc-900/40 border-t border-white/5 flex items-center justify-between">
-             <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                Showing 1 to {filteredCustomers.length} of {filteredCustomers.length} customers
-             </div>
-             <div className="flex gap-2">
-                <button className="px-5 py-2 rounded-xl bg-zinc-900 border border-white/5 text-zinc-500 text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
-                   Previous
-                </button>
-                <button className="px-5 py-2 rounded-xl bg-zinc-900 border border-white/5 text-zinc-500 text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
-                   Next
-                </button>
-             </div>
+
+          <div className="p-6 border-t border-white/[0.03] flex items-center justify-between bg-white/[0.01]">
+            <p className="text-[11px] font-medium text-zinc-500">Showing {filteredCustomers.length} user records</p>
+            <div className="flex gap-2">
+               <button className="h-9 px-4 rounded-lg bg-white/5 border border-white/5 text-zinc-600 text-[12px] font-semibold cursor-not-allowed">
+                  Previous
+               </button>
+               <button className="h-9 px-4 rounded-lg bg-white/5 border border-white/5 text-zinc-600 text-[12px] font-semibold cursor-not-allowed">
+                  Next
+               </button>
+            </div>
           </div>
         </div>
       </div>

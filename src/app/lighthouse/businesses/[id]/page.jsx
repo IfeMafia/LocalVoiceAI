@@ -1,7 +1,8 @@
 import { getBusinessDetails } from '@/lib/admin_queries/admin';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Building2, Activity, DollarSign, Cpu, Settings } from 'lucide-react';
+import { Building2, Activity, DollarSign, Cpu, Settings, Trash2, ShieldAlert, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 
 export default async function BusinessDetailsPage({ params }) {
   const resolvedParams = await params;
@@ -9,11 +10,11 @@ export default async function BusinessDetailsPage({ params }) {
 
   if (!business) {
     return (
-      <DashboardLayout title="Business Not Found">
-        <div className="p-10 text-center">
-          <h2 className="text-2xl font-black text-white">Business not found</h2>
-          <Link href="/lighthouse/businesses" className="text-[#00D18F] mt-4 inline-block hover:underline">
-            &larr; Back to list
+      <DashboardLayout title="Not Found">
+        <div className="p-20 text-center flex flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Business record not found</h2>
+          <Link href="/lighthouse/businesses" className="text-voxy-primary font-medium hover:underline flex items-center gap-2">
+            <ArrowLeft size={16} /> Back to directory
           </Link>
         </div>
       </DashboardLayout>
@@ -22,47 +23,49 @@ export default async function BusinessDetailsPage({ params }) {
 
   const { stats } = business;
 
-  const cards = [
+  const statCards = [
     { label: 'LLM Tokens', value: stats.totalLlmTokens.toLocaleString(), icon: Cpu, cost: `$${stats.llmCost.toFixed(2)}` },
-    { label: 'STT Duration (s)', value: stats.totalSttDuration.toFixed(1), icon: Activity, cost: `$${stats.sttCost.toFixed(2)}` },
+    { label: 'STT Duration', value: `${stats.totalSttDuration.toFixed(1)}s`, icon: Activity, cost: `$${stats.sttCost.toFixed(2)}` },
     { label: 'TTS Usage', value: stats.totalTtsUsage.toLocaleString(), icon: Activity, cost: `$${stats.ttsCost.toFixed(2)}` },
     { label: 'Total Requests', value: stats.requestsCount, icon: Settings, cost: `$${stats.totalCost.toFixed(2)}` },
   ];
 
   return (
     <DashboardLayout title="Business Details">
-      <div className="space-y-10 pb-10">
+      <div className="max-w-[1400px] mx-auto pt-8 pb-32 space-y-10">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row gap-6 md:items-end justify-between">
-          <div className="flex flex-col gap-2">
-            <Link href="/lighthouse/businesses" className="text-zinc-500 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
-              &larr; Businesses
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="space-y-4">
+            <Link href="/lighthouse/businesses" className="text-[13px] font-medium text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
+              <ArrowLeft size={14} /> Back to Businesses
             </Link>
-            <h1 className="text-4xl font-black text-white tracking-tight">{business.name}</h1>
-            <p className="text-zinc-500 font-bold uppercase tracking-wider text-sm flex gap-4">
-              <span>{business.owner_email}</span>
-              <span className={`inline-block px-3 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-full border ${
-                  business.status === 'active' ? 'bg-[#00D18F]/10 text-[#00D18F] border-[#00D18F]/20' :
-                  business.status === 'suspended' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                  'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                }`}>
-                {business.status}
-              </span>
-            </p>
+            <div className="space-y-2">
+               <div className="flex items-center gap-3">
+                  <h1 className="text-4xl font-bold text-white tracking-tight">{business.name}</h1>
+                  <Badge variant="outline" className={`
+                    text-[10px] font-medium px-3 py-0.5 border-0
+                    ${business.status === 'active' ? 'bg-voxy-primary/10 text-voxy-primary' :
+                      business.status === 'suspended' ? 'bg-red-500/10 text-red-500' :
+                      'bg-yellow-500/10 text-yellow-500'}
+                  `}>
+                    {business.status}
+                  </Badge>
+               </div>
+               <p className="text-[15px] text-zinc-500 font-medium">{business.owner_email}</p>
+            </div>
           </div>
           
-          <div className="flex gap-4">
-             {/* Admin actions (client form would be better, but server actions works too) */}
+          <div className="flex items-center gap-3">
              <form action={async () => {
                 'use server';
                 const { updateBusinessStatus } = await import('@/lib/admin_queries/admin');
                 await updateBusinessStatus(business.id, business.status === 'suspended' ? 'active' : 'suspended');
              }}>
-                <button type="submit" className={`px-5 py-2.5 font-black text-xs uppercase tracking-widest rounded-xl transition-all border ${
-                  business.status === 'suspended' ? 'bg-[#00D18F]/20 text-[#00D18F] border-[#00D18F]/50 hover:bg-[#00D18F]/30' : 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20'
+                <button type="submit" className={`h-11 px-6 rounded-xl font-bold text-[13px] transition-all border ${
+                  business.status === 'suspended' ? 'bg-voxy-primary/10 text-voxy-primary border-voxy-primary/20 hover:bg-voxy-primary/20' : 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20'
                 }`}>
-                  {business.status === 'suspended' ? 'Reactivate' : 'Suspend'}
+                  {business.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
                 </button>
              </form>
 
@@ -72,8 +75,8 @@ export default async function BusinessDetailsPage({ params }) {
                   const { updateBusinessStatus } = await import('@/lib/admin_queries/admin');
                   await updateBusinessStatus(business.id, 'flagged');
                }}>
-                  <button type="submit" className="px-5 py-2.5 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-yellow-500/20 transition-all">
-                    Flag
+                  <button type="submit" className="h-11 px-6 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 font-bold text-[13px] rounded-xl hover:bg-yellow-500/20 transition-all flex items-center gap-2">
+                    <ShieldAlert size={14} /> Flag
                   </button>
                </form>
              )}
@@ -81,57 +84,53 @@ export default async function BusinessDetailsPage({ params }) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {cards.map((stat, i) => (
-            <div 
-              key={i} 
-              className="relative overflow-hidden p-8 bg-zinc-900 border border-white/5 rounded-3xl group shadow-2xl"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest leading-none">
-                    {stat.label}
-                  </h3>
-                  <div className="text-3xl font-black text-white mt-4 tracking-tight">
-                    {stat.value}
-                  </div>
-                  <div className="mt-4 text-[#00D18F] font-bold text-sm">
-                    Cost: {stat.cost}
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          {statCards.map((stat, i) => (
+            <div key={i} className="bg-[#0A0A0A] border border-white/5 p-8 rounded-3xl flex flex-col h-full hover:border-white/10 transition-all group">
+              <div className="flex items-start justify-between mb-6">
+                <div className="text-[12px] font-semibold text-zinc-500">{stat.label}</div>
+                <div className="size-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-voxy-primary transition-colors">
+                  <stat.icon size={18} />
                 </div>
-                <div className="size-10 rounded-2xl bg-white/5 flex items-center justify-center text-white/50">
-                  <stat.icon className="w-5 h-5" />
-                </div>
+              </div>
+              <div className="mt-auto">
+                <h3 className="text-3xl font-bold text-white mb-2 tracking-tight tabular-nums">{stat.value}</h3>
+                <p className="text-[13px] font-medium text-voxy-primary/80">Cost: {stat.cost}</p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Total Cost card separated */}
-        <div className="p-10 bg-[#050505] border border-white/5 rounded-[40px] shadow-2xl flex items-center justify-between">
-           <div>
-             <h2 className="text-zinc-500 uppercase tracking-widest font-bold text-sm mb-2">Total Platform Cost</h2>
-             <div className="text-5xl font-black text-white">${stats.totalCost.toFixed(2)}</div>
+        {/* Combined Cost Card */}
+        <div className="p-10 bg-[#0A0A0A] border border-white/5 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+           <div className="space-y-1 text-center sm:text-left">
+             <p className="text-[12px] font-semibold text-zinc-500 uppercase tracking-wider">Total consumption</p>
+             <h2 className="text-5xl font-bold text-white tracking-tight tabular-nums">${stats.totalCost.toFixed(2)}</h2>
            </div>
-           <div className="size-16 rounded-3xl bg-zinc-900 border border-white/10 flex items-center justify-center text-[#00D18F]">
-               <DollarSign className="w-8 h-8" />
+           <div className="size-16 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-voxy-primary shadow-xl shadow-voxy-primary/5">
+                <DollarSign className="w-8 h-8" />
            </div>
         </div>
 
-        {/* Usage Breakdown Log (basic simulated chart format) */}
-        <div className="bg-[#050505] border border-white/5 rounded-[40px] p-10 shadow-2xl">
-          <h2 className="text-2xl font-black text-white tracking-tight mb-8">Daily Usage Log</h2>
+        {/* Usage Logs */}
+        <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-8 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <div className="flex items-center gap-3 mb-8">
+            <Activity size={18} className="text-voxy-primary" />
+            <h2 className="text-xl font-bold text-white tracking-tight">Daily Usage History</h2>
+          </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {business.charts.length === 0 ? (
-              <p className="text-zinc-500 font-bold text-center">No daily logs</p>
+              <div className="py-20 text-center text-zinc-600">
+                 <p className="text-[14px] font-medium">No usage records found for this period</p>
+              </div>
             ) : (
               business.charts.map(day => (
-                <div key={day.date} className="flex items-center justify-between p-4 bg-zinc-900 border border-white/5 rounded-2xl">
-                  <div className="text-white font-bold">{day.date}</div>
+                <div key={day.date} className="flex items-center justify-between p-5 bg-white/[0.01] border border-white/5 rounded-2xl hover:bg-white/[0.03] transition-all group">
+                  <div className="text-[15px] font-semibold text-zinc-300">{day.date}</div>
                   <div className="flex items-center gap-8">
-                    <div className="text-zinc-400 font-bold text-sm">{day.count} requests</div>
-                    <div className="text-[#00D18F] font-black">${day.cost.toFixed(2)}</div>
+                    <div className="text-zinc-500 font-medium text-[13px]">{day.count} requests</div>
+                    <div className="text-voxy-primary font-bold tabular-nums">${day.cost.toFixed(2)}</div>
                   </div>
                 </div>
               ))

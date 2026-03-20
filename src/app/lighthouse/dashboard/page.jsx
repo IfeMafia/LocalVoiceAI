@@ -4,27 +4,43 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { 
   Users, 
-  Building2, 
   MessageCircle, 
   TrendingUp, 
-  Settings, 
-  Plus, 
-  MoreVertical, 
-  ArrowUpRight, 
-  ArrowDownRight,
   Loader2,
   Calendar,
-  Layers,
   CheckCircle2,
-  Shield,
   Activity,
   Cpu,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import SystemHealth from '@/components/dashboard/SystemHealth';
 import AuditLogs from '@/components/dashboard/AuditLogs';
 import AIInsight from '@/components/dashboard/AIInsight';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+
+const AdminStatCard = ({ title, value, description, icon: Icon, trend, positive }) => (
+  <div className="bg-[#0A0A0A] border border-white/5 p-6 rounded-2xl flex flex-col h-full hover:border-white/10 transition-all group">
+    <div className="flex items-start justify-between mb-4">
+      <div className="size-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-voxy-primary transition-colors">
+        <Icon size={20} />
+      </div>
+      <div className="text-[12px] font-semibold text-zinc-500 text-right">{title}</div>
+    </div>
+    
+    <div>
+      <h3 className="text-3xl font-bold text-white mb-1 tracking-tight">{value}</h3>
+      <div className="flex items-center gap-2">
+         <span className={`text-[11px] font-semibold ${positive ? 'text-voxy-primary' : 'text-zinc-500'}`}>
+            {trend}
+         </span>
+         <span className="text-[11px] text-zinc-600 font-medium">today</span>
+      </div>
+    </div>
+  </div>
+);
 
 export default function AdminDashboardPage() {
   const { user: currentUser } = useAuth();
@@ -33,8 +49,6 @@ export default function AdminDashboardPage() {
   const [ranking, setRanking] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const isAdmin = true; // BYPASS FOR TESTING
 
   useEffect(() => {
     async function fetchData() {
@@ -69,174 +83,131 @@ export default function AdminDashboardPage() {
     fetchData();
   }, []);
 
-  if (!isAdmin && !loading) {
-    return (
-      <DashboardLayout title="Access Denied">
-        <div className="flex flex-col items-center justify-center p-20 bg-zinc-950 rounded-3xl border border-white/5">
-          <div className="size-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-6">
-            <Settings className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-black text-white mb-2">Admin Only</h2>
-          <p className="text-zinc-500 max-w-sm text-center">
-            This section is restricted to platform administrators. Please contact support if you believe this is an error.
-          </p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   if (loading) {
-// ... existing loading state ...
     return (
-      <DashboardLayout title="Analytics & Metrics">
+      <DashboardLayout title="System Analytics">
         <div className="flex flex-col items-center justify-center p-20 min-h-[60vh] text-zinc-500 space-y-4">
-          <Loader2 className="w-10 h-10 animate-spin text-[#00D18F]" />
-          <p className="font-bold uppercase tracking-widest text-xs">Calibrating Platform Data...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-voxy-primary" />
+          <p className="text-[13px] font-medium text-zinc-500">Loading system data...</p>
         </div>
       </DashboardLayout>
     );
   }
-
-  const statCards = [
-    { 
-      label: 'Total Users', 
-      value: metrics?.total_users || 0, 
-      icon: Users,
-      trend: { value: metrics?.recent_users_7d || 0, label: 'New last 7 days', positive: true }
-    },
-    { 
-      label: 'Total Conversations', 
-      value: metrics?.total_conversations || 0, 
-      icon: MessageCircle,
-      trend: { value: metrics?.total_messages || 0, label: 'Messages Sent', positive: true }
-    },
-    { 
-      label: 'AI Processor Load', 
-      value: `${(aiMetrics?.total_tokens / 1000).toFixed(0)}k`, 
-      icon: Cpu,
-      trend: { value: aiMetrics?.error_rate, label: 'Error Rate', positive: true }
-    },
-    { 
-      label: 'Average Latency', 
-      value: aiMetrics?.avg_latency || '...', 
-      icon: Activity,
-      trend: { value: '99.9%', label: 'Uptime', positive: true }
-    },
-  ];
 
   return (
-    <DashboardLayout title="Admin Analytics">
-      <div className="space-y-10 pb-10">
+    <DashboardLayout title="Platform Monitoring">
+      <div className="max-w-[1400px] mx-auto pt-8 pb-32 space-y-10">
+        
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row gap-6 md:items-end justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-block px-3 py-1 bg-[#00D18F]/10 text-[#00D18F] text-[10px] font-black uppercase tracking-widest rounded-full border border-[#00D18F]/20">
-                LIVE Monitoring
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00D18F] animate-pulse"></span>
-            </div>
-            <h1 className="text-4xl font-black text-white tracking-tight">Admin Dashboard</h1>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-white tracking-tight">System Performance</h1>
+            <p className="text-[15px] text-zinc-500">
+              Track real-time activity, AI performance, and system health across the platform.
+            </p>
           </div>
-          <div className="flex gap-4">
-            <button className="px-5 py-2.5 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl flex items-center gap-2 hover:bg-[#00D18F] transition-all group">
-              <Calendar className="w-4 h-4" />
-              This Month
-            </button>
+          
+          <div className="flex items-center gap-3">
+             <div className="h-11 px-4 bg-[#0A0A0A] border border-white/5 rounded-xl flex items-center gap-3">
+                <div className="size-2 rounded-full bg-voxy-primary animate-pulse shadow-[0_0_10px_rgba(0,209,143,0.3)]"></div>
+                <span className="text-[13px] font-medium text-white">System: Healthy</span>
+             </div>
+             <button className="h-11 px-5 bg-[#0A0A0A] text-zinc-500 font-medium text-[13px] rounded-xl hover:text-white hover:border-white/20 transition-all border border-white/5 flex items-center gap-3">
+                <Calendar size={14} /> Historical data
+             </button>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((stat, i) => (
-            <div 
-              key={i} 
-              className="relative overflow-hidden p-8 bg-zinc-900 border border-white/5 rounded-3xl group hover:border-[#00D18F]/30 transition-all shadow-2xl"
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
-                <stat.icon size={100} />
-              </div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-zinc-500 font-bold text-xs uppercase tracking-widest leading-none">{stat.label}</h3>
-                  <div className="text-4xl font-black text-white mt-4 tracking-tight group-hover:text-[#00D18F] transition-colors">{stat.value}</div>
-                </div>
-                <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/50 group-hover:text-[#00D18F] transition-colors">
-                  <stat.icon className="w-6 h-6" />
-                </div>
-              </div>
-              <div className="mt-8 flex items-center gap-2">
-                {stat.trend.positive ? (
-                  <ArrowUpRight className="w-4 h-4 text-[#00D18F]" />
-                ) : (
-                  <ArrowDownRight className="w-4 h-4 text-red-500" />
-                )}
-                <span className={`text-xs font-black ${stat.trend.positive ? "text-[#00D18F]" : "text-red-500"}`}>
-                  {stat.trend.value}
-                </span>
-                <span className="text-zinc-500 text-xs font-bold">{stat.trend.label}</span>
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          <AdminStatCard 
+            title="Total Users" 
+            value={metrics?.total_users || 0} 
+            trend={`+${metrics?.recent_users_7d || 0}`} 
+            positive={true} 
+            icon={Users} 
+          />
+          <AdminStatCard 
+            title="Total Conversations" 
+            value={metrics?.total_conversations || 0} 
+            trend="Active" 
+            positive={true} 
+            icon={MessageCircle} 
+          />
+          <AdminStatCard 
+            title="AI Token Load" 
+            value={`${(aiMetrics?.total_tokens / 1000).toFixed(0)}k`} 
+            trend={`${aiMetrics?.error_rate || 0}% errors`} 
+            positive={false} 
+            icon={Cpu} 
+          />
+          <AdminStatCard 
+            title="Avg Latency" 
+            value={aiMetrics?.avg_latency || '...'} 
+            trend="99.9% uptime" 
+            positive={true} 
+            icon={Activity} 
+          />
         </div>
 
-        {/* Charts & System Monitoring */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-[#050505] border border-white/5 rounded-[40px] p-10 shadow-2xl">
+        {/* Visualization & Health */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+          <div className="lg:col-span-2 bg-[#0A0A0A] border border-white/5 rounded-3xl p-8 flex flex-col h-[500px]">
             <div className="flex items-center justify-between mb-10">
               <div>
-                <h2 className="text-2xl font-black text-white tracking-tight">User Growth</h2>
-                <p className="text-zinc-500 text-sm font-bold mt-1 uppercase tracking-wider">Registration trends over time</p>
-              </div>
-              <div className="size-12 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-[#00D18F]">
-                 <TrendingUp className="w-5 h-5" />
+                <div className="flex items-center gap-3 mb-1">
+                  <TrendingUp size={16} className="text-voxy-primary" />
+                  <h2 className="text-[12px] font-semibold text-zinc-500">Growth Projection</h2>
+                </div>
+                <p className="text-xl font-bold text-white tracking-tight">New user registrations</p>
               </div>
             </div>
             
-            <div className="h-[350px] w-full">
+            <div className="flex-1 w-full">
                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
-                      <linearGradient id="colorRegistrations" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00D18F" stopOpacity={0.3}/>
+                      <linearGradient id="colorArea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00D18F" stopOpacity={0.1}/>
                         <stop offset="95%" stopColor="#00D18F" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1f1f1f" />
                     <XAxis 
                       dataKey="name" 
-                      stroke="#52525b" 
-                      fontSize={10} 
+                      stroke="#404040" 
+                      fontSize={11} 
                       tickLine={false} 
                       axisLine={false}
                       dy={10}
                     />
                     <YAxis 
-                      stroke="#52525b" 
-                      fontSize={10} 
+                      stroke="#404040" 
+                      fontSize={11} 
                       tickLine={false} 
                       axisLine={false}
-                      tickFormatter={(value) => `${value}`}
                     />
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: '#09090b', 
-                        borderColor: '#27272a',
-                        borderRadius: '16px',
-                        borderWidth: '1px',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        color: 'white'
+                        backgroundColor: '#0F0F0F', 
+                        borderColor: 'rgba(255,255,255,0.05)',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: 'white',
+                        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.5)'
                       }}
                       itemStyle={{ color: '#00D18F' }}
+                      cursor={{ stroke: '#00D18F', strokeWidth: 1, strokeDasharray: '4 4' }}
                     />
                     <Area 
                       type="monotone" 
                       dataKey="registrations" 
                       stroke="#00D18F" 
                       fillOpacity={1} 
-                      fill="url(#colorRegistrations)" 
-                      strokeWidth={3}
+                      fill="url(#colorArea)" 
+                      strokeWidth={2}
+                      animationDuration={2000}
                     />
                   </AreaChart>
                </ResponsiveContainer>
@@ -248,87 +219,99 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Audit Logs & AI Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+        {/* Intelligence & Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
            <div className="lg:col-span-2">
               <AuditLogs />
            </div>
-           
            <div className="lg:col-span-1">
               <AIInsight data={aiMetrics} />
            </div>
         </div>
 
-        {/* Ranking List */}
-        <div className="bg-[#050505] border border-white/5 rounded-[40px] p-10 shadow-2xl mt-10">
-          <div className="flex items-center justify-between mb-10">
+        {/* Business Leaderboard */}
+        <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
+          <div className="p-8 border-b border-white/[0.03] flex items-center justify-between bg-white/[0.01]">
             <div>
-              <h2 className="text-2xl font-black text-white tracking-tight">Active Businesses</h2>
-              <p className="text-zinc-500 text-sm font-bold mt-1 uppercase tracking-wider">Ranked by overall platform engagement</p>
-            </div>
-            <div className="flex gap-2">
-              <div className="size-10 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center text-white/40">
-                <TrendingUp className="w-4 h-4" />
+              <div className="flex items-center gap-3 mb-1">
+                <TrendingUp size={16} className="text-voxy-primary" />
+                <h2 className="text-[12px] font-semibold text-zinc-500">Business Activity</h2>
               </div>
+              <p className="text-xl font-bold text-white tracking-tight">Active platform businesses</p>
             </div>
+            <Link 
+              href="/lighthouse/businesses" 
+              className="px-6 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[13px] font-medium text-zinc-400 hover:text-white hover:border-white/20 transition-all underline decoration-voxy-primary/30 underline-offset-4"
+            >
+              All businesses
+            </Link>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/5">
-                  <th className="pb-6 text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] px-4">Business</th>
-                  <th className="pb-6 text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] px-4 text-center">Activity</th>
-                  <th className="pb-6 text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] px-4 text-center">Owner</th>
-                  <th className="pb-6 text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] px-4 text-right">Actions</th>
+                <tr className="border-b border-white/[0.03]">
+                  <th className="py-5 px-8 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider">Business</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Engagement</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Owner</th>
+                  <th className="py-5 px-8 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-right">Joined</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-white/[0.02]">
                 {ranking.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="py-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-xs">
-                      No active businesses found
+                    <td colSpan="4" className="py-32 text-center opacity-40">
+                      <div className="flex flex-col items-center">
+                        <Users size={32} className="text-zinc-800 mb-4" />
+                        <p className="text-[13px] font-medium text-zinc-600">No activity data available</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   ranking.map((business, index) => (
-                    <tr key={business.id} className="group border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-all">
-                      <td className="py-6 px-4">
-                        <div className="flex items-center gap-4">
-                          <div className="size-12 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-white/50 group-hover:border-[#00D18F]/50 group-hover:bg-[#00D18F]/10 group-hover:text-[#00D18F] transition-all overflow-hidden shrink-0">
+                    <tr key={business.id} className="group hover:bg-white/[0.01] transition-all">
+                      <td className="py-5 px-8">
+                        <div className="flex items-center gap-5">
+                          <div className="size-11 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-voxy-primary/10 group-hover:border-voxy-primary/30 group-hover:text-voxy-primary transition-all overflow-hidden shrink-0 relative">
                             {business.logo_url ? (
                               <img src={business.logo_url} alt="" className="size-full object-cover" />
                             ) : (
-                              <span className="font-black text-sm uppercase">{business.name.substring(0, 2)}</span>
+                              <span className="font-bold text-sm uppercase">{business.name.substring(0, 1)}</span>
                             )}
                           </div>
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                               <div className="font-black text-white group-hover:text-[#00D18F] transition-colors truncate">{business.name}</div>
+                            <div className="flex items-center gap-3">
+                               <Link 
+                                 href={`/lighthouse/businesses/${business.id}`} 
+                                 className="font-bold text-white group-hover:text-voxy-primary transition-all tracking-tight flex items-center gap-2"
+                               >
+                                 {business.name}
+                                 <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                               </Link>
                                {business.total_conversations > 50 && (
-                                 <CheckCircle2 className="w-3.5 h-3.5 text-[#00D18F]" title="Verified Business" />
+                                 <CheckCircle2 className="w-3 h-3 text-voxy-primary" />
                                )}
                             </div>
-                            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mt-0.5">{business.category}</div>
+                            <div className="text-[11px] text-zinc-500 mt-1">{business.category || 'Standard Service'}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-6 px-4 text-center">
-                        <div className="inline-flex flex-col items-center">
-                          <span className="text-lg font-black text-white group-hover:text-[#00D18F] transition-colors">{business.total_conversations}</span>
-                          <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Inquiries</span>
+                      <td className="py-5 px-6 text-center">
+                        <div>
+                          <p className="text-lg font-bold text-white group-hover:text-voxy-primary transition-colors tabular-nums tracking-tight">{business.total_conversations}</p>
+                          <p className="text-[10px] font-medium text-zinc-600 mt-0.5">chats</p>
                         </div>
                       </td>
-                      <td className="py-6 px-4 text-center">
-                        <div className="inline-flex flex-col items-center">
-                          <span className="text-sm font-bold text-white/80">{business.owner_name}</span>
-                          <span className="text-[9px] font-medium text-zinc-500">{business.owner_email}</span>
-                        </div>
+                      <td className="py-5 px-6 text-center">
+                         <div>
+                            <p className="text-[13px] font-semibold text-zinc-300 tracking-tight">{business.owner_name}</p>
+                            <p className="text-[11px] font-medium text-zinc-600 lowercase">{business.owner_email}</p>
+                         </div>
                       </td>
-                      <td className="py-6 px-4 text-right">
-                        <button className="p-3 text-zinc-500 hover:text-white transition-colors">
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
+                      <td className="py-5 px-8 text-right">
+                         <span className="text-[13px] font-medium text-zinc-500 tabular-nums">
+                            {new Date(business.created_at || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                         </span>
                       </td>
                     </tr>
                   ))
