@@ -8,7 +8,7 @@ export const siteConfig = {
   shortName: "Voxy",
   description: "Advanced AI-powered business chat platform for seamless customer engagement and conversion.",
   url: "https://voxy.samkiel.dev",
-  ogImage: "https://voxy.samkiel.dev/favicon.jpg",
+  ogImage: "https://voxy.samkiel.dev/favicon.jpg", // Ensure this exists in /public
   links: {
     twitter: "@voxy_ai",
     github: "https://github.com/ifemafia/voxy",
@@ -30,7 +30,7 @@ export function constructMetadata({
   title = siteConfig.name,
   description = siteConfig.description,
   image = siteConfig.ogImage,
-  icons = "/favicon.ico",
+  icons = "/favicon.jpg",
   noIndex = false,
 } = {}) {
   return {
