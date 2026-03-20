@@ -75,8 +75,9 @@ CREATE TABLE IF NOT EXISTS customers (
 CREATE TABLE IF NOT EXISTS transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID REFERENCES businesses(id) ON DELETE CASCADE,
-  type TEXT NOT NULL, -- 'credit_purchase', 'credit_usage'
+  type TEXT NOT NULL, -- 'credit_purchase', 'credit_usage', 'manual_adjustment'
   amount INTEGER NOT NULL,
+  reference TEXT UNIQUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

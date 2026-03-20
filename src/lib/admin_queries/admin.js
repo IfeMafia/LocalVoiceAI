@@ -1,4 +1,4 @@
-import prisma from '../prisma';
+import db from '@/lib/db';
 import { getAdminDb } from '../supabase';
 
 export async function getDashboardStats() {
@@ -58,38 +58,27 @@ export async function getDashboardStats() {
 
 export async function getAllBusinesses() {
   try {
-    const businesses = await prisma.business.findMany({
-      include: {
-        transactions: {
-          select: { type: true, amount: true }
-        },
-        owner: {
-          select: { email: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const businesses = await db.query(`
+      SELECT 
+        b.id, b.name, b.slug, b.owner_id, b.status,
+        b.created_at,
+        b.credit_balance as "creditBalance",
+        u.email as owner_email,
+        COALESCE(SUM(CASE WHEN t.type = 'credit_purchase' THEN ABS(t.amount) ELSE 0 END), 0) as "totalPurchased",
+        COALESCE(SUM(CASE WHEN t.type = 'credit_usage' THEN ABS(t.amount) ELSE 0 END), 0) as "totalUsed"
+      FROM businesses b
+      LEFT JOIN users u ON b.owner_id = u.id
+      LEFT JOIN transactions t ON b.id = t.business_id
+      GROUP BY b.id, u.email
+      ORDER BY b.created_at DESC
+    `);
 
-    return businesses.map(b => {
-      const totalPurchased = b.transactions
-        .filter(t => t.type === 'credit_purchase')
-        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-        
-      const totalUsed = b.transactions
-        .filter(t => t.type === 'credit_usage')
-        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-
-      return {
-        ...b,
-        owner_email: b.owner?.email || 'Unknown',
-        creditBalance: b.creditBalance,
-        totalPurchased,
-        totalUsed,
-        // Match existing UI props
-        created_at: b.createdAt,
-        totalUsageCount: totalUsed // Using credit usage as proxy for request count in this context
-      };
-    });
+    return businesses.rows.map(b => ({
+      ...b,
+      totalUsageCount: parseInt(b.totalUsed || 0),
+      totalPurchased: parseInt(b.totalPurchased || 0),
+      totalUsed: parseInt(b.totalUsed || 0)
+    }));
   } catch (error) {
     console.error('[Admin Query] Error fetching businesses:', error);
     return [];

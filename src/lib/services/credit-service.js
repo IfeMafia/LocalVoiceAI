@@ -1,79 +1,53 @@
-import prisma from '@/lib/prisma';
+import db from '@/lib/db';
 
+/**
+ * Standardized Credit Errors
+ */
 export const CREDIT_ERRORS = {
-  NO_CREDITS: 'NO_CREDITS',
+  NO_CREDITS: 'INSUFFICIENT_CREDITS',
   BUSINESS_NOT_FOUND: 'BUSINESS_NOT_FOUND'
 };
 
 /**
- * Deduct a single credit from a business balance.
- * Implemented with atomic updates to ensure consistency under heavy load.
+ * Deduct 1 credit from a business balance atomically.
+ * Returns the updated balance.
  */
 export async function deductCredit(businessId) {
+  const client = await db.getClient();
   try {
-    return await prisma.$transaction(async (tx) => {
-      const updateResult = await tx.business.updateMany({
-        where: {
-          id: businessId,
-          creditBalance: { gt: 0 }
-        },
-        data: {
-          creditBalance: { decrement: 1 }
-        }
-      });
+    await client.query('BEGIN');
 
-      if (updateResult.count === 0) {
-        const biz = await tx.business.findUnique({
-          where: { id: businessId },
-          select: { creditBalance: true }
-        });
-        
-        if (!biz) throw new Error(CREDIT_ERRORS.BUSINESS_NOT_FOUND);
-        throw new Error(CREDIT_ERRORS.NO_CREDITS);
-      }
+    // 1. Check & Update balance atomically using row-level check
+    const res = await client.query(
+      `UPDATE businesses 
+       SET credit_balance = credit_balance - 1 
+       WHERE id = $1 AND credit_balance > 0 
+       RETURNING credit_balance`,
+      [businessId]
+    );
 
-      await tx.transaction.create({
-        data: {
-          businessId,
-          type: 'credit_usage',
-          amount: 1
-        }
-      });
+    if (res.rowCount === 0) {
+      // Check if business exists
+      const checkRes = await client.query('SELECT id FROM businesses WHERE id = $1', [businessId]);
+      if (checkRes.rowCount === 0) throw new Error(CREDIT_ERRORS.BUSINESS_NOT_FOUND);
+      throw new Error(CREDIT_ERRORS.NO_CREDITS);
+    }
 
-      return updateResult;
-    });
+    // 2. Log Transaction
+    await client.query(
+      `INSERT INTO transactions (business_id, type, amount, reference) 
+       VALUES ($1, 'credit_usage', 1, $2)`,
+      [businessId, `usage_${Date.now()}`]
+    );
+
+    await client.query('COMMIT');
+    return res.rows[0].credit_balance;
   } catch (error) {
-    console.error(`[CreditService] Deduction failed:`, error.message);
+    await client.query('ROLLBACK');
     throw error;
+  } finally {
+    client.release();
   }
-}
-
-/**
- * Higher-order utility to wrap chargeable actions.
- * 1. Checks credits BEFORE action.
- * 2. Executes action.
- * 3. Deducts credit ONLY after successful execution.
- */
-export async function withCreditCheck(businessId, action) {
-  // 1. PRE-FLIGHT: Check balance
-  const business = await prisma.business.findUnique({
-    where: { id: businessId },
-    select: { creditBalance: true }
-  });
-
-  if (!business) throw new Error(CREDIT_ERRORS.BUSINESS_NOT_FOUND);
-  if (business.creditBalance <= 0) {
-    throw new Error(CREDIT_ERRORS.NO_CREDITS);
-  }
-
-  // 2. EXECUTE ACTION (e.g., AI Response Generation)
-  const result = await action();
-
-  // 3. POST-FLIGHT: Atomic deduction
-  // This will fail if balance somehow dropped to 0 during the action
-  await deductCredit(businessId);
-
-  return result;
 }
 
 /**
@@ -82,37 +56,39 @@ export async function withCreditCheck(businessId, action) {
 export async function addCredits(businessId, amount, reference = null) {
   if (amount <= 0) throw new Error('Credit amount must be positive');
 
+  const client = await db.getClient();
   try {
-    return await prisma.$transaction(async (tx) => {
-      // 1. Idempotency Check: Don't process same reference twice
-      if (reference) {
-        const existing = await tx.transaction.findUnique({
-          where: { reference }
-        });
-        if (existing) return existing; // Already processed
+    await client.query('BEGIN');
+
+    // 1. Idempotency Check
+    if (reference) {
+      const existing = await client.query('SELECT id FROM transactions WHERE reference = $1', [reference]);
+      if (existing.rowCount > 0) {
+        await client.query('ROLLBACK');
+        return null; // Already processed
       }
+    }
 
-      const business = await tx.business.update({
-        where: { id: businessId },
-        data: {
-          creditBalance: { increment: amount }
-        }
-      });
+    // 2. Update Balance
+    const res = await client.query(
+      `UPDATE businesses SET credit_balance = credit_balance + $1 WHERE id = $2 RETURNING *`,
+      [amount, businessId]
+    );
 
-      await tx.transaction.create({
-        data: {
-          businessId,
-          type: 'credit_purchase',
-          amount,
-          reference
-        }
-      });
+    // 3. Log Transaction
+    await client.query(
+      `INSERT INTO transactions (business_id, type, amount, reference) 
+       VALUES ($1, 'credit_purchase', $2, $3)`,
+      [businessId, amount, reference]
+    );
 
-      return business;
-    });
+    await client.query('COMMIT');
+    return res.rows[0];
   } catch (error) {
-    console.error(`[CreditService] Error adding credits:`, error);
+    await client.query('ROLLBACK');
     throw error;
+  } finally {
+    client.release();
   }
 }
 
@@ -120,28 +96,47 @@ export async function addCredits(businessId, amount, reference = null) {
  * Adjust credits manually (Admin use)
  */
 export async function adjustCredits(businessId, amount, reason = 'Admin adjustment') {
+  const client = await db.getClient();
   try {
-    return await prisma.$transaction(async (tx) => {
-      const business = await tx.business.update({
-        where: { id: businessId },
-        data: {
-          creditBalance: { increment: amount }
-        }
-      });
+    await client.query('BEGIN');
 
-      await tx.transaction.create({
-        data: {
-          businessId,
-          type: 'manual_adjustment',
-          amount,
-          reference: `admin_${Date.now()}`
-        }
-      });
+    const res = await client.query(
+      `UPDATE businesses SET credit_balance = credit_balance + $1 WHERE id = $2 RETURNING credit_balance`,
+      [amount, businessId]
+    );
 
-      return business;
-    });
+    await client.query(
+      `INSERT INTO transactions (business_id, type, amount, reference) 
+       VALUES ($1, 'manual_adjustment', $2, $3)`,
+      [businessId, amount, `admin_${Date.now()}`]
+    );
+
+    await client.query('COMMIT');
+    return { creditBalance: res.rows[0].credit_balance };
   } catch (error) {
-    console.error(`[CreditService] Manual adjustment failed:`, error);
+    await client.query('ROLLBACK');
     throw error;
+  } finally {
+    client.release();
   }
+}
+
+/**
+ * Higher-order function to wrap AI-related actions with credit checks.
+ */
+export async function withCreditCheck(businessId, action) {
+  // Pre-flight check
+  const bizRes = await db.query('SELECT credit_balance FROM businesses WHERE id = $1', [businessId]);
+  const business = bizRes.rows[0];
+
+  if (!business) throw new Error(CREDIT_ERRORS.BUSINESS_NOT_FOUND);
+  if (business.credit_balance <= 0) throw new Error(CREDIT_ERRORS.NO_CREDITS);
+
+  // Execute the actual AI action
+  const result = await action();
+
+  // Deduct 1 credit atomically on success
+  await deductCredit(businessId);
+
+  return result;
 }
