@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { generateToken, setAuthCookie } from '@/lib/auth';
+import { getBaseUrl } from '@/lib/utils';
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -8,7 +9,7 @@ export async function GET(req) {
   const error = searchParams.get('error');
   const role = searchParams.get('state') || 'customer'; // role was passed as state
 
-  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const BASE_URL = getBaseUrl();
   const redirectUri = `${BASE_URL}/api/auth/google/callback`;
 
   if (error || !code) {

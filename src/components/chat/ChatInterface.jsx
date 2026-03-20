@@ -121,6 +121,10 @@ export default function ChatInterface({ business, userName, isGuest = false, ini
     }
   };
 
+  const handleDelete = (messageId) => {
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  };
+
   useEffect(() => {
     if (!conversationId) return;
 
@@ -415,6 +419,7 @@ export default function ChatInterface({ business, userName, isGuest = false, ini
           conversationId={conversationId}
           onPlayAiAudio={handlePlayAiAudio}
           playingAiAudioId={playingAiAudioId}
+          onDelete={handleDelete}
         />
       </div>
 

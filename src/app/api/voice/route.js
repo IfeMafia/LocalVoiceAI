@@ -8,6 +8,7 @@ import { generateHybridSpeech } from '@/lib/ai/utils/hybridTts';
 import { detectLanguageGemini } from '@/lib/ai/utils/language';
 import { trackUsage } from '@/lib/tracking';
 import { transcribeAudioHybrid } from '@/lib/ai/utils/hybridStt';
+import { getBaseUrl } from '@/lib/utils';
 
 // Import the existing chat handler to prevent logic duplication
 import { POST as handleChatGenerate } from '@/app/api/assistant/chat/route';
@@ -29,7 +30,7 @@ async function generateChatResponse(conversationId, transcript) {
   );
 
   // 2. Wrap conversationId in a fake Request to reuse the exact chat logic endpoint
-  const mockReq = new Request('http://localhost/api/assistant/chat', {
+  const mockReq = new Request(`${getBaseUrl()}/api/assistant/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ conversationId }),

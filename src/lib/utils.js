@@ -42,3 +42,12 @@ export async function getUniqueSlug(table, name, db) {
 
   return slug;
 }
+/**
+ * Returns the base URL for the application
+ */
+export function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  return 'http://localhost:3000';
+}

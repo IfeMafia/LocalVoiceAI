@@ -127,6 +127,10 @@ export default function ConversationPage({ params }) {
   const handleTypeComplete = (id) => {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, isNew: false } : m));
   };
+  
+  const handleDelete = (messageId) => {
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  };
 
   const handleToggleAi = async (checked) => {
     if (!conversation?.id) return;

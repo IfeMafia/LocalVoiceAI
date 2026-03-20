@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { getBaseUrl } from './utils';
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -9,8 +10,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 /**
  * Standard Email Wrapper
@@ -55,7 +54,7 @@ export async function sendVerificationEmail(email, name, otp) {
  * Using Link (Option A)
  */
 export async function sendPasswordResetEmail(email, name, tokenIdentifier) {
-  const resetLink = `${BASE_URL}/reset-password?token=${tokenIdentifier}`;
+  const resetLink = `${getBaseUrl()}/reset-password?token=${tokenIdentifier}`;
   return sendMail({
     to: email,
     subject: 'Reset your password',
@@ -82,7 +81,7 @@ export async function sendWelcomeEmail(email, name) {
       <p>Hi ${name || 'there'},</p>
       <p>Your account is now verified. Welcome to Voxy! You can now start automating your business communication with AI.</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${BASE_URL}/login" style="background-color: #00D18F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
+        <a href="${getBaseUrl()}/login" style="background-color: #00D18F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
       </div>
     `,
   });

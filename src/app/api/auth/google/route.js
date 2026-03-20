@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { getBaseUrl } from '@/lib/utils';
 
 export async function GET(req) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/google/callback`;
+  const redirectUri = `${getBaseUrl()}/api/auth/google/callback`;
 
   const { searchParams } = new URL(req.url);
   const role = searchParams.get('role') || 'customer'; // default fallback only for direct hits
