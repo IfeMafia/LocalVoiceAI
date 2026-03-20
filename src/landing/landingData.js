@@ -16,6 +16,7 @@ export const NAV_LINKS = [
     { label: "The Problem", href: "/#problem" },
     { label: "How It Works", href: "/#how-it-works" },
     { label: "Features", href: "/#features" },
+    { label: "Pricing", href: "/pricing" },
 ];
 
 // Anchor IDs — defined once, referenced by both nav links and section elements
@@ -153,6 +154,7 @@ export const FOOTER = {
     brand: "VOXY",
     tagline: "Multilingual AI for small businesses.",
     links: [
+        { label: "Pricing", href: "/pricing" },
         { label: "Terms", href: "/terms" },
         { label: "Privacy", href: "/privacy" },
         { label: "Contact", href: "/contact" },

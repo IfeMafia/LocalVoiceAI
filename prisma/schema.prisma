@@ -84,6 +84,7 @@ model Transaction {
 enum TransactionType {
   credit_purchase
   credit_usage
+  manual_adjustment
 }
 
 /**

@@ -115,3 +115,33 @@ export async function addCredits(businessId, amount, reference = null) {
     throw error;
   }
 }
+
+/**
+ * Adjust credits manually (Admin use)
+ */
+export async function adjustCredits(businessId, amount, reason = 'Admin adjustment') {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const business = await tx.business.update({
+        where: { id: businessId },
+        data: {
+          creditBalance: { increment: amount }
+        }
+      });
+
+      await tx.transaction.create({
+        data: {
+          businessId,
+          type: 'manual_adjustment',
+          amount,
+          reference: `admin_${Date.now()}`
+        }
+      });
+
+      return business;
+    });
+  } catch (error) {
+    console.error(`[CreditService] Manual adjustment failed:`, error);
+    throw error;
+  }
+}

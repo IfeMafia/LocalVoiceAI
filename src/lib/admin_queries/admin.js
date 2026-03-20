@@ -1,3 +1,4 @@
+import prisma from '../prisma';
 import { getAdminDb } from '../supabase';
 
 export async function getDashboardStats() {
@@ -56,44 +57,43 @@ export async function getDashboardStats() {
 }
 
 export async function getAllBusinesses() {
-  const supabase = getAdminDb();
-  
-  const { data: businesses, error } = await supabase
-    .from('businesses')
-    .select(`
-      id,
-      name,
-      slug,
-      owner_id,
-      created_at,
-      status,
-      usage_logs (
-        cost_estimate
-      )
-    `)
-    .order('created_at', { ascending: false });
+  try {
+    const businesses = await prisma.business.findMany({
+      include: {
+        transactions: {
+          select: { type: true, amount: true }
+        },
+        owner: {
+          select: { email: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
 
-  if (error) return [];
+    return businesses.map(b => {
+      const totalPurchased = b.transactions
+        .filter(t => t.type === 'credit_purchase')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        
+      const totalUsed = b.transactions
+        .filter(t => t.type === 'credit_usage')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
-  // We need owner emails, which requires joining auth.users via admin client
-  const { data: usersData } = await supabase.auth.admin.listUsers();
-  const usersMap = {};
-  usersData?.users?.forEach(u => {
-    usersMap[u.id] = u.email;
-  });
-
-  return businesses.map(b => {
-    const totalCost = b.usage_logs?.reduce((sum, log) => sum + Number(log.cost_estimate), 0) || 0;
-    const totalUsageCount = b.usage_logs?.length || 0;
-    
-    return {
-      ...b,
-      owner_email: usersMap[b.owner_id] || 'Unknown',
-      totalCost,
-      totalUsageCount,
-      usage_logs: undefined 
-    };
-  });
+      return {
+        ...b,
+        owner_email: b.owner?.email || 'Unknown',
+        creditBalance: b.creditBalance,
+        totalPurchased,
+        totalUsed,
+        // Match existing UI props
+        created_at: b.createdAt,
+        totalUsageCount: totalUsed // Using credit usage as proxy for request count in this context
+      };
+    });
+  } catch (error) {
+    console.error('[Admin Query] Error fetching businesses:', error);
+    return [];
+  }
 }
 
 export async function getBusinessDetails(id) {

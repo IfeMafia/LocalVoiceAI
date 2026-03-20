@@ -3,6 +3,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import Link from 'next/link';
 import { Building2, Search, Filter, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import AdminCreditActions from '@/components/admin/AdminCreditActions';
 
 export default async function BusinessesListPage() {
   const businesses = await getAllBusinesses();
@@ -43,10 +44,10 @@ export default async function BusinessesListPage() {
                 <tr className="border-b border-white/[0.03] bg-white/[0.01]">
                   <th className="py-5 px-8 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider">Business Name</th>
                   <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider">Owner Email</th>
-                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Requests</th>
-                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Billing</th>
-                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Status</th>
-                  <th className="py-5 px-8 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-right">Created</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Credit Balance</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Total Purchased</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-center">Total Used</th>
+                  <th className="py-5 px-6 text-zinc-500 text-[11px] font-semibold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.02]">
@@ -62,38 +63,38 @@ export default async function BusinessesListPage() {
                 ) : (
                   businesses.map((business) => (
                     <tr key={business.id} className="group hover:bg-white/[0.01] transition-all">
-                      <td className="py-6 px-8">
+                      <td className="py-6 px-8 text-white">
                         <Link 
                           href={`/lighthouse/businesses/${business.id}`} 
-                          className="font-bold text-[16px] text-white group-hover:text-voxy-primary transition-colors tracking-tight flex items-center gap-3"
+                          className="font-bold text-[16px] group-hover:text-voxy-primary transition-colors tracking-tight flex items-center gap-3"
                         >
                           {business.name}
-                          <ArrowRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all font-sans" />
                         </Link>
                       </td>
                       <td className="py-6 px-6">
                         <span className="text-[13px] font-medium text-zinc-400">{business.owner_email}</span>
                       </td>
                       <td className="py-6 px-6 text-center">
-                        <span className="text-[14px] font-bold text-zinc-300 tabular-nums">{business.totalUsageCount}</span>
+                         <span className={`text-[15px] font-bold tabular-nums ${business.creditBalance < 10 ? 'text-red-500' : 'text-white'}`}>
+                           {business.creditBalance}
+                         </span>
                       </td>
                       <td className="py-6 px-6 text-center tabular-nums">
-                        <span className="text-[15px] font-bold text-white tracking-tight">${business.totalCost.toFixed(2)}</span>
+                        <span className="text-[14px] font-bold text-emerald-500">+{business.totalPurchased}</span>
                       </td>
-                      <td className="py-6 px-6 text-center">
-                        <Badge variant="outline" className={`
-                          text-[10px] font-medium px-3 py-0.5 border-0
-                          ${business.status === 'active' ? 'bg-voxy-primary/10 text-voxy-primary' :
-                            business.status === 'suspended' ? 'bg-red-500/10 text-red-500' :
-                            'bg-yellow-500/10 text-yellow-500'}
-                        `}>
-                          {business.status}
-                        </Badge>
+                      <td className="py-6 px-6 text-center tabular-nums">
+                        <span className="text-[14px] font-bold text-zinc-500">-{business.totalUsed}</span>
                       </td>
                       <td className="py-6 px-8 text-right">
-                        <span className="text-[13px] font-medium text-zinc-500 tabular-nums">
-                          {new Date(business.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
+                         <div className="flex items-center justify-end gap-4">
+                            <AdminCreditActions 
+                               businessId={business.id} 
+                               currentBalance={business.creditBalance} 
+                            />
+                            <Link href={`/lighthouse/businesses/${business.id}`} className="p-1 px-3 bg-zinc-900 border border-white/5 rounded-lg text-[10px] font-bold text-zinc-400 hover:text-white transition-colors">
+                               DETAILS
+                            </Link>
+                         </div>
                       </td>
                     </tr>
                   ))
