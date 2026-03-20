@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="dark min-h-screen bg-black text-white flex flex-col">
       <Navbar />
       
       <main className="flex-1 pt-32 pb-20 px-6">

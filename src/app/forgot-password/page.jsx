@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white p-4 sm:p-8 relative overflow-hidden">
+    <div className="dark min-h-screen bg-[#000000] flex flex-col items-center justify-center text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white p-4 sm:p-8 relative overflow-hidden">
       
       {/* Dynamic background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-voxy-primary/5 rounded-full blur-[140px] pointer-events-none" />

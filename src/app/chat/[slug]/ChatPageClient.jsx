@@ -18,7 +18,7 @@ export default function ChatPageClient({ business }) {
   }, [business]);
 
   return (
-    <div className="min-h-screen bg-black flex flex-col font-sans selection:bg-voxy-primary/30 selection:text-white overflow-hidden">
+    <div className="dark min-h-screen bg-black flex flex-col font-sans selection:bg-voxy-primary/30 selection:text-white overflow-hidden">
       <Navbar />
 
       <main className="flex-1 flex flex-col pt-24 pb-8 px-4 md:px-8 max-w-5xl mx-auto w-full overflow-hidden">

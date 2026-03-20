@@ -12,7 +12,7 @@ export async function GET(req) {
     const slug = searchParams.get('slug');
     if (slug) {
       const result = await db.query(
-        'SELECT id, name, slug, description, category, custom_category, profile_completion, is_live, logo_url, use_ai_reply, business_hours, assistant_tone, phone, address, state, lga, street_address FROM businesses WHERE slug = $1 AND is_live = true',
+        'SELECT id, name, slug, description, category, custom_category, profile_completion, is_live, logo_url, use_ai_reply, business_hours, assistant_tone, phone, address, state, lga, street_address, social_links FROM businesses WHERE slug = $1 AND is_live = true',
         [slug]
       );
       return NextResponse.json({ 
@@ -23,7 +23,7 @@ export async function GET(req) {
 
     if (isPublic) {
       const result = await db.query(
-        'SELECT id, name, slug, description, category, custom_category, profile_completion, is_live, logo_url, use_ai_reply, phone, address, state, lga, street_address FROM businesses WHERE is_live = true'
+        'SELECT id, name, slug, description, category, custom_category, profile_completion, is_live, logo_url, use_ai_reply, phone, address, state, lga, street_address, social_links FROM businesses WHERE is_live = true'
       );
       return NextResponse.json({ 
         success: true, 

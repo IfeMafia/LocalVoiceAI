@@ -65,7 +65,7 @@ export default function Signup() {
   const currentContent = SIGNUP_CONTENT[role];
 
   return (
-    <div className="min-h-screen bg-[#000000] flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
+    <div className="dark min-h-screen bg-[#000000] flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
       <Navbar />
       
       <div className="flex-1 flex flex-col lg:flex-row pt-16 lg:pt-0">

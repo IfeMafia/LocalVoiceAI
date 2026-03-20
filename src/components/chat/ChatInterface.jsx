@@ -357,7 +357,7 @@ export default function ChatInterface({ business, userName, isGuest = false, ini
     const tempId = 'temp-' + Date.now();
     const previewUrl = URL.createObjectURL(file);
 
-    setMessages(prev => [...prev, { id: tempId, role: 'customer', content: `[img]${previewUrl}`, created_at: new Date().toISOString(), status: 'sending' }]);
+    setMessages(prev => [...prev, { id: tempId, role: 'customer', sender_type: 'customer', content: `[img]${previewUrl}`, created_at: new Date().toISOString(), status: 'sending' }]);
 
     try {
       const fileExt = file.name.split('.').pop();

@@ -72,7 +72,7 @@ function ResetPasswordContent() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+      <div className="dark min-h-screen bg-black flex flex-col items-center justify-center p-4">
         <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-12 text-center max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-500">
            <div className="size-20 bg-[#00D18F]/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-[#00D18F]/20">
               <CheckCircle2 className="text-[#00D18F] w-10 h-10" />
@@ -90,7 +90,7 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="dark min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Abstract Background Design */}
       <div className="fixed top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(0,209,143,0.1)_0%,transparent_50%)] pointer-events-none" />
       
@@ -182,7 +182,7 @@ function ResetPasswordContent() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="dark min-h-screen bg-black flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[#00D18F]" />
       </div>
     }>

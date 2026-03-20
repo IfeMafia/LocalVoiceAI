@@ -145,7 +145,7 @@ function VerifyAccountContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
+    <div className="dark min-h-screen bg-[#000000] flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
       <Navbar />
       
       <div className="flex-1 flex flex-col lg:flex-row pt-16 lg:pt-0">
@@ -278,7 +278,7 @@ function VerifyAccountContent() {
 export default function VerifyAccountPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="dark min-h-screen bg-black flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-voxy-primary/20 border-t-voxy-primary rounded-full animate-spin" />
       </div>
     }>
