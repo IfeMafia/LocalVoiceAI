@@ -44,7 +44,7 @@ const RecentConversations = ({ conversations }) => {
               <div className="flex items-center gap-4 min-w-0">
                 <div className="relative flex-shrink-0">
                   <div className="size-11 rounded-xl bg-zinc-100 dark:bg-[#0F0F0F] border border-zinc-200 dark:border-white/5 flex items-center justify-center text-zinc-500 dark:text-zinc-400 font-bold text-sm shadow-inner">
-                    {formatName(conv.customer_name).charAt(0)}
+                    {formatName(conv.actual_customer_name || conv.customer_name).charAt(0)}
                   </div>
                 </div>
 

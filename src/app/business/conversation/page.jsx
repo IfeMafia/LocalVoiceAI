@@ -37,7 +37,7 @@ function ConversationsPageContent() {
       if (data.success) {
           setConversations(data.conversations.map(c => ({
             ...c,
-            name: c.customer_name || 'Guest',
+            name: c.actual_customer_name || c.customer_name || 'Guest',
             snippet: c.last_message?.startsWith('[img]') ? '📷 Photo' : (c.last_message || 'No messages yet'),
             time: c.last_message_at 
               ? new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
