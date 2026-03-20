@@ -1,10 +1,10 @@
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 
 /**
- * PRODUCTION-READY Hybrid Multilingual TTS (ElevenLabs Optimized)
+ * PRODUCTION-READY Hybrid Multilingual TTS
  * 
- * 1. ElevenLabs (Native/Human Quality) - Primary for Yoruba/Igbo.
- * 2. Google Translate Direct (Free) - Hausa/English.
+ * 1. ElevenLabs (Native Quality) - Primary for Yoruba/Igbo (Sarah).
+ * 2. Google Translate Direct (Free) - native Hausa/English.
  * 3. MsEdge Nigerian Neural (Free) - Universal Fallback.
  */
 export async function generateHybridSpeech(text, detectedLanguage = 'english') {
@@ -13,13 +13,14 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
   const lang = (detectedLanguage || 'english').toLowerCase();
   const elKey = process.env.ELEVENLABS_API_KEY;
 
-  // ─── TIER 1: ElevenLabs (Free Tier - Highest Native Quality) ───
-  if (elKey && (lang === 'yoruba' || lang === 'igbo' || lang === 'hausa')) {
+  // ─── TIER 1: ElevenLabs (Yoruba & Igbo ONLY) ───
+  // Using Charlie (IKne3meq5aSn9XLyUdCD) for a more authoritative native sound
+  if (elKey && (lang === 'yoruba' || lang === 'igbo')) {
     try {
       console.log(`[TTS T1] ElevenLabs: ${lang}`);
       const audioBuffer = await queryElevenLabs(text, lang, elKey);
       if (audioBuffer && audioBuffer.length > 2000) {
-         console.log(`[TTS T1] ✅ Success (${audioBuffer.length}B)`);
+         console.log(`[TTS T1] ✅ ElevenLabs Success (${audioBuffer.length}B)`);
          return `data:audio/mp3;base64,${audioBuffer.toString('base64')}`;
       }
     } catch (e) {
@@ -27,11 +28,11 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
     }
   }
 
-  // ─── TIER 2: Google Translate Direct (Free) ───
+  // ─── TIER 2: Google Translate Direct (Free - Hausa & English Priority) ───
   const tier2 = await tryGoogleTranslateDirect(text, lang);
   if (tier2) return tier2;
 
-  // ─── TIER 3: Nigerian Accent Fallback (Free) ───
+  // ─── TIER 3: MsEdge Nigerian Accent (Free Fallback) ───
   const tier3 = await tryMsEdgeNigerianAccent(text);
   if (tier3) return tier3;
 
@@ -39,18 +40,23 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
 }
 
 async function queryElevenLabs(text, lang, apiKey) {
-  // Common Nigerian/Multi-language voice on ElevenLabs
-  // 'Nig-Yoruba-Male' or 'Nig-Igbo-Female' - ElevenLabs detects lang automatically!
-  // Pre-selected high-quality multilingual model: eleven_multilingual_v2
+  // SLOW DOWN TRICK: Add commas after every 3 words to force the AI to pause
+  const slowedText = text.split(' ').map((word, i) => (i > 0 && i % 3 === 0) ? `${word},` : word).join(' ');
+
   const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/9BWtsRjCgsZCVvrvJvG9`, // 'Aria' Multilingual
+    `https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL`, 
     {
       method: "POST",
       headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: text,
+        text: slowedText,
         model_id: "eleven_multilingual_v2",
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+        voice_settings: { 
+          stability: 1.0, // Maximum stability results in the most deliberate/slowest pace
+          similarity_boost: 0.8,
+          style: 0.0, // Clear and steady
+          use_speaker_boost: true
+        }
       }),
     }
   );
@@ -65,7 +71,10 @@ async function queryElevenLabs(text, lang, apiKey) {
 async function tryGoogleTranslateDirect(text, lang) {
   const codes = { 'yoruba': 'yo', 'igbo': 'ig', 'hausa': 'ha', 'english': 'en' };
   const tl = codes[lang] || 'en';
-  if (tl === 'yo' || tl === 'ig') return null; // Google blocks these
+  
+  // As requested, always using Google for Hausa (since it's free and better)
+  if (tl === 'yo' || tl === 'ig') return null; 
+
   try {
     const buffer = await fetchGoogleTTS(text, tl);
     if (buffer && buffer.length > 2000) return `data:audio/mp3;base64,${buffer.toString('base64')}`;
