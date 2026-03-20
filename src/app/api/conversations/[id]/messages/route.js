@@ -4,28 +4,57 @@ import { getUserFromCookie } from '@/lib/auth';
 
 export async function GET(req, { params }) {
   try {
-    const user = await getUserFromCookie();
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
+    const user = await getUserFromCookie();
 
-    // 1. Fetch messages
-    const result = await db.query(
-      'SELECT * FROM messages WHERE conversation_id = $1 AND NOT ($2 = ANY(COALESCE(hidden_for, \'{}\'))) ORDER BY created_at ASC',
-      [id, user.id]
+    // 1. Fetch conversation details to check ownership
+    const convResult = await db.query(
+      'SELECT customer_id, business_id FROM conversations WHERE id = $1',
+      [id]
     );
 
-    // 2. Mark messages sent TO this user as read
-    // If user is owner, mark messages from customer as read
-    // If user is customer, mark messages from ai or owner as read
-    if (user.role === 'customer') {
+    if (convResult.rowCount === 0) {
+      return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 });
+    }
+
+    const conversation = convResult.rows[0];
+
+    // Ownership logic:
+    // - If it's a guest conversation (customer_id is null), allow access.
+    // - If it's a user conversation, require user.id to match customer_id OR be the business owner.
+    if (conversation.customer_id) {
+      if (!user) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      }
+
+      // Check if user is the business owner
+      const bizRes = await db.query(
+        'SELECT owner_id FROM businesses WHERE id = $1',
+        [conversation.business_id]
+      );
+      const ownerId = bizRes.rows[0]?.owner_id;
+
+      if (user.id !== conversation.customer_id && user.id !== ownerId) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
+    // 2. Fetch messages
+    // If guest (no user), use a dummy UUID to satisfy $2 (hidden_for check)
+    const result = await db.query(
+      'SELECT * FROM messages WHERE conversation_id = $1 AND NOT ($2 = ANY(COALESCE(hidden_for, \'{}\'))) ORDER BY created_at ASC',
+      [id, user?.id || '00000000-0000-0000-0000-000000000000']
+    );
+
+    // 3. Mark messages sent TO this user as read
+    // If user is guest OR role is customer, mark messages from ai or owner as read
+    if (!user || user.role === 'customer') {
       await db.query(
         "UPDATE messages SET is_read = true WHERE conversation_id = $1 AND sender_type IN ('ai', 'owner')",
         [id]
       );
     } else {
+      // User is business owner, mark customer messages as read
       await db.query(
         "UPDATE messages SET is_read = true WHERE conversation_id = $1 AND sender_type = 'customer'",
         [id]

@@ -32,19 +32,19 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conv
   };
 
   return (
-    <div className={`flex flex-col mb-4 ${isMe ? 'items-end' : 'items-start'} group animate-in fade-in duration-300`}>
+    <div className={`flex flex-col mb-6 ${isMe ? 'items-end' : 'items-start'} group animate-in fade-in duration-300`}>
       {/* Label for the sender */}
-      <span className={`text-[9px] font-bold uppercase tracking-widest mb-1 mx-1 opacity-40 ${isMe ? 'text-right' : 'text-left'}`}>
-        {isAI ? 'VOXY AI' : (isOwner ? (businessName || 'Business') : 'Customer')}
+      <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 mx-1 text-zinc-600 ${isMe ? 'text-right' : 'text-left'}`}>
+        {isAI ? 'VOXY AI' : (isOwner ? (businessName?.toUpperCase() || 'BUSINESS') : 'CUSTOMER')}
       </span>
       
-      <div className={`flex items-end gap-2 max-w-[85%] sm:max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex items-end gap-3 max-w-[85%] sm:max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
         {!isMe && (
-          <div className="w-6 h-6 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 mb-1">
+          <div className="w-8 h-8 rounded-full bg-[#1A1A1A] border border-white/5 flex items-center justify-center overflow-hidden shrink-0 mb-1">
             {isAI ? (
               <img src="/favicon.jpg" alt="AI" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-blue-500/10 text-blue-500 font-bold text-[8px] uppercase">
+              <div className="w-full h-full flex items-center justify-center bg-blue-500/10 text-blue-500 font-bold text-[10px] uppercase">
                 {businessName?.charAt(0) || 'B'}
               </div>
             )}
@@ -53,11 +53,11 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conv
 
         <div className="relative group/bubble">
           <div className={`
-            ${isImageMessage ? 'p-1' : 'px-3.5 py-2.5'} 
-            rounded-2xl text-sm leading-relaxed shadow-sm
+            ${isImageMessage ? 'p-1.5' : 'px-5 py-3.5'} 
+            rounded-2xl text-[15px] leading-relaxed
             ${isMe 
-              ? 'bg-[#00D18F] text-black rounded-br-sm' 
-              : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100 border border-zinc-200 dark:border-white/5 rounded-bl-sm'}
+              ? 'bg-[#00D18F] text-black font-medium' 
+              : 'bg-[#1A1A1A] text-zinc-100 border border-white/5'}
           `}>
             {isImageMessage ? (
               <a href={imageUrl} target="_blank" rel="noopener noreferrer">
@@ -77,9 +77,14 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conv
               message.content
             )}
             
-            <div className={`flex items-center gap-1 mt-1 justify-end opacity-50 text-[9px] ${isMe ? 'text-black/70' : 'text-zinc-500'}`}>
-              <span>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              {isMe && <Check className="w-3 h-3" strokeWidth={3} />}
+            <div className={`flex items-center gap-1 mt-2 justify-end opacity-40 text-[10px] ${isMe ? 'text-black/80' : 'text-zinc-500'}`}>
+              <span className="font-medium">{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {isMe && (
+                <div className="flex -space-x-1.5 translate-y-[0.5px]">
+                   <Check className="w-3 h-3" strokeWidth={4} />
+                   <Check className="w-3 h-3" strokeWidth={4} />
+                </div>
+              )}
             </div>
           </div>
 

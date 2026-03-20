@@ -9,10 +9,10 @@ import ChatHeader from "@/components/conversation/ChatHeader";
 import MessageList from "@/components/conversation/MessageList";
 import MessageInput from "@/components/conversation/MessageInput";
 
-export default function ChatInterface({ business, userName }) {
+export default function ChatInterface({ business, userName, isGuest = false, initialConversationId = null, backUrl = "/customer/chat" }) {
   const [messages, setMessages] = useState([]);
-  const [conversationId, setConversationId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [conversationId, setConversationId] = useState(initialConversationId);
+  const [loading, setLoading] = useState(!initialConversationId);
   const [isBusinessOnline, setIsBusinessOnline] = useState(false);
   const [typingUser, setTypingUser] = useState(null); 
   const [isAiEnabled, setIsAiEnabled] = useState(true);
@@ -36,22 +36,37 @@ export default function ChatInterface({ business, userName }) {
 
   useEffect(() => {
     if (!business?.id) return;
-
+    
+    // If we already have a conversationId (e.g. from public page localStorage), 
+    // we just need to fetch messages
     const initChat = async () => {
       try {
         setLoading(true);
-        const res = await fetch('/api/conversations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ businessId: business.id, customerName: userName })
-        });
-        const data = await res.json();
-        
-        if (data.success && data.id) {
-          setConversationId(data.id);
-          setIsAiEnabled(data.ai_enabled ?? true);
-          
-          const msgRes = await fetch(`/api/conversations/${data.id}/messages`);
+        let currentId = conversationId;
+
+        if (!currentId) {
+          // No ID yet, create one
+          const endpoint = isGuest ? '/api/public/conversations' : '/api/conversations';
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ businessId: business.id, customerName: userName })
+          });
+          const data = await res.json();
+          if (data.success && data.id) {
+            currentId = data.id;
+            setConversationId(data.id);
+            setIsAiEnabled(data.ai_enabled ?? true);
+            
+            // Persist for guest sessions
+            if (isGuest) {
+              localStorage.setItem(`voxy_guest_conv_${business.id}`, data.id);
+            }
+          }
+        }
+
+        if (currentId) {
+          const msgRes = await fetch(`/api/conversations/${currentId}/messages`);
           const msgData = await msgRes.json();
           if (msgData.success && msgData.messages.length > 0) {
             setMessages(msgData.messages.map(m => ({
@@ -80,7 +95,7 @@ export default function ChatInterface({ business, userName }) {
     };
 
     initChat();
-  }, [business?.id, user?.id]);
+  }, [business?.id, user?.id, isGuest]);
 
   const handleToggleAi = async (checked) => {
     if (!conversationId) return;
@@ -378,7 +393,7 @@ export default function ChatInterface({ business, userName }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-black md:rounded-[2rem] overflow-hidden border-x border-zinc-200 dark:border-white/5 w-full max-w-4xl mx-auto shadow-2xl relative transition-colors duration-500">
+    <div className="flex flex-col h-full bg-transparent overflow-hidden w-full relative transition-all">
       <ChatHeader 
         name={business?.name}
         status={isBusinessOnline ? 'Online' : 'Away'}
@@ -387,11 +402,11 @@ export default function ChatInterface({ business, userName }) {
         onToggleAi={handleToggleAi}
         onClear={handleClearChat}
         showBack={true}
-        backUrl="/customer/chat"
+        backUrl={backUrl}
         businessSlug={business?.slug}
       />
 
-      <div className="flex-1 overflow-hidden relative flex flex-col bg-white dark:bg-[#0A0A0A] transition-colors duration-500">
+      <div className="flex-1 overflow-hidden relative flex flex-col bg-transparent transition-all">
         <MessageList 
           messages={messages.map(m => ({ ...m, sender_type: m.role || m.sender_type }))} 
           typingUser={typingUser}

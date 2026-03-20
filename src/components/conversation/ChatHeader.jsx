@@ -23,50 +23,50 @@ const ChatHeader = ({ name, status, icon: Icon, aiEnabled, aiLabel = "AI", onTog
   const isOnline = status === 'Online' || status === 'Active Now';
 
   return (
-    <div className="sticky top-0 z-50 bg-white/80 dark:bg-black/95 backdrop-blur-md border-b border-zinc-200 dark:border-white/5 px-4 py-3 flex items-center justify-between shrink-0 transition-all shadow-sm dark:shadow-none">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="sticky top-0 z-50 bg-[#0F0F0F] border-b border-white/5 px-6 py-4 flex items-center justify-between shrink-0 transition-all">
+      <div className="flex items-center gap-4 min-w-0">
         {showBack && (
           <Button
             variant="ghost"
             size="icon"
             onClick={() => (backUrl ? router.push(backUrl) : router.back())}
-            className="h-8 w-8 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400"
+            className="h-9 w-9 hover:bg-white/5 text-zinc-500 transition-all active:scale-95"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
           </Button>
         )}
         
-        <Link href={`/customer/business/${businessSlug}`} className="flex items-center gap-2.5 min-w-0 group/header">
+        <div className="flex items-center gap-4 min-w-0">
           <div className="relative flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-inner group-hover/header:border-[#00D18F]/50 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-white/5 flex items-center justify-center overflow-hidden shadow-sm">
               {typeof Icon === 'string' ? (
-                <img src={Icon} alt={name} className="w-full h-full object-cover group-hover/header:scale-110 transition-transform duration-500" />
+                <img src={Icon} alt={name} className="w-full h-full object-cover" />
               ) : Icon ? (
-                <Icon className="w-4 h-4 text-[#00D18F]" />
+                <Icon className="w-5 h-5 text-[#00D18F]" />
               ) : (
-                <span className="text-[#00D18F] font-bold text-xs uppercase">{name?.charAt(0)}</span>
+                <span className="text-[#00D18F] font-bold text-sm uppercase">{name?.charAt(0)}</span>
               )}
             </div>
             {isOnline && (
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00D18F] border-2 border-white dark:border-black rounded-full shadow-sm" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#00D18F] border-[3px] border-[#0F0F0F] rounded-full shadow-sm" />
             )}
           </div>
           
           <div className="min-w-0">
-            <h1 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-none mb-1 group-hover/header:text-[#00D18F] transition-colors">
+            <h1 className="text-base font-black text-white truncate leading-none mb-1.5 tracking-tight">
               {name || 'Business'}
             </h1>
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest whitespace-nowrap">
+            <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] whitespace-nowrap opacity-60">
               {isOnline ? 'Online' : 'AI Assistant'}
             </span>
           </div>
-        </Link>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-white/5 px-3 py-1.5 rounded-full border border-zinc-200 dark:border-white/5 shadow-inner">
-          <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{aiLabel}</span>
-          <Switch checked={aiEnabled} onCheckedChange={onToggleAi} className="scale-75 translate-x-1" />
+      <div className="flex items-center gap-4">
+        <div className="hidden sm:flex items-center gap-4 bg-white/[0.03] px-4 py-2 rounded-full border border-white/5">
+          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] opacity-80">{aiLabel}</span>
+          <Switch checked={aiEnabled} onCheckedChange={onToggleAi} className="scale-90" />
         </div>
         
         <div className="relative" ref={menuRef}>

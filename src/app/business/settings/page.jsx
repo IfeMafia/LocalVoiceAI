@@ -6,6 +6,7 @@ import ProfileCompletion from '@/components/settings/ProfileCompletion';
 import BusinessInfoForm from '@/components/settings/BusinessInfoForm';
 import BusinessHoursEditor from '@/components/settings/BusinessHoursEditor';
 import AssistantConfig from '@/components/settings/AssistantConfig';
+import BusinessPublicLink from '@/components/settings/BusinessPublicLink';
 import { Button } from '@/components/ui/button';
 import { Save, Loader2, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -163,9 +164,9 @@ export default function BusinessSettingsPage() {
           </Button>
         </div>
 
-        {/* Profile Completion */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 space-y-6">
            <ProfileCompletion completionPercentage={businessData.profile_completion} />
+           <BusinessPublicLink slug={businessData.slug} />
         </div>
 
         <div className="grid grid-cols-1 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
