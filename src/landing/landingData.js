@@ -34,7 +34,7 @@ export const HERO = {
     accent: "Instantly.",
     body:
         "A multilingual AI voice assistant that understands English, Nigerian Pidgin, Yoruba, Hausa, and Igbo. It converts voice notes and informal text into professional, ready-to-send replies for your business.",
-    primaryCTA: "Start for free",
+    primaryCTA: "Get started now",
     secondaryCTA: "Log in to Dashboard",
     // The three-step flow rendered in the hero visual
     workflow: [
@@ -144,7 +144,7 @@ export const FEATURES = {
 export const CTA = {
     headline: "Stop missing inquiries. Start responding.",
     body: "Join small businesses already using Voxy to respond faster and convert more customers.",
-    primaryCTA: "Start for free — no credit card required",
+    primaryCTA: "Get started — it takes 60 seconds",
     loginCTA: "Already have an account? Log in",
 };
 
