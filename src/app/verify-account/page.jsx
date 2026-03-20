@@ -145,12 +145,12 @@ function VerifyAccountContent() {
   };
 
   return (
-    <div className="dark min-h-screen bg-[#000000] flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
+    <div className="min-h-screen bg-background flex flex-col text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white">
       <Navbar />
       
       <div className="flex-1 flex flex-col lg:flex-row pt-16 lg:pt-0">
         <AuthBranding>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A0A0A] border border-voxy-border mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-voxy-surface border border-voxy-border mb-6">
             <div className="w-1.5 h-1.5 rounded-full bg-voxy-primary"></div>
             <span className="text-xs font-medium text-voxy-muted">{VERIFY_CONTENT.badge}</span>
           </div>
@@ -165,7 +165,7 @@ function VerifyAccountContent() {
 
           <div className="grid sm:grid-cols-2 gap-4 mb-16">
             {VERIFY_CONTENT.features.map((feature, idx) => (
-              <div key={idx} className="bg-[#0A0A0A] p-5 rounded-xl border border-transparent hover:border-voxy-border transition-colors">
+              <div key={idx} className="bg-voxy-surface p-5 rounded-xl border border-transparent hover:border-voxy-border transition-colors">
                 {feature.icon}
                 <h3 className="text-[15px] font-semibold mb-2">{feature.title}</h3>
                 <p className="text-[13px] text-voxy-muted leading-relaxed">{feature.desc}</p>
@@ -186,7 +186,7 @@ function VerifyAccountContent() {
         <div className="w-full lg:w-[560px] p-4 sm:p-8 flex flex-col items-center justify-center min-h-screen lg:min-h-0 relative z-10">
           <MobileAuthHeader />
 
-          <div className="w-full max-w-[480px] lg:max-w-none bg-[#0A0A0A] border border-voxy-border rounded-3xl p-6 sm:p-10 shadow-2xl relative z-10">
+          <div className="w-full max-w-[480px] lg:max-w-none bg-voxy-surface border border-voxy-border rounded-3xl p-6 sm:p-10 shadow-2xl relative z-10">
             <div className="mb-8 text-left">
               <div className="inline-flex items-center justify-center p-2.5 bg-voxy-primary/10 rounded-xl mb-6 border border-voxy-primary/20">
                 <Mail className="w-6 h-6 text-voxy-primary" />
@@ -213,7 +213,7 @@ function VerifyAccountContent() {
                     onKeyDown={(e) => handleKeyDown(idx, e)}
                     onPaste={handlePaste}
                     readOnly={isExpired}
-                    className={`aspect-square sm:aspect-auto sm:h-20 bg-[#141414] border rounded-xl text-center text-2xl sm:text-3xl font-bold text-voxy-text focus:border-voxy-primary focus:ring-1 focus:ring-voxy-primary/20 outline-none transition-all ${digit ? 'border-voxy-primary/50' : 'border-voxy-border'} ${isExpired ? 'opacity-30 cursor-not-allowed' : ''}`}
+                    className={`aspect-square sm:aspect-auto sm:h-20 bg-background border rounded-xl text-center text-2xl sm:text-3xl font-bold text-voxy-text focus:border-voxy-primary focus:ring-1 focus:ring-voxy-primary/20 outline-none transition-all ${digit ? 'border-voxy-primary/50' : 'border-border'} ${isExpired ? 'opacity-30 cursor-not-allowed' : ''}`}
                   />
                 ))}
               </div>
@@ -278,7 +278,7 @@ function VerifyAccountContent() {
 export default function VerifyAccountPage() {
   return (
     <Suspense fallback={
-      <div className="dark min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-voxy-primary/20 border-t-voxy-primary rounded-full animate-spin" />
       </div>
     }>

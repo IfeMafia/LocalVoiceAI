@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="dark min-h-screen bg-[#000000] flex flex-col items-center justify-center text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white p-4 sm:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-voxy-text font-sans selection:bg-voxy-primary/30 selection:text-white p-4 sm:p-8 relative overflow-hidden">
       
       {/* Dynamic background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-voxy-primary/5 rounded-full blur-[140px] pointer-events-none" />
@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
         </Link>
       </div>
 
-      <div className="w-full max-w-[520px] bg-[#0A0A0A] border border-voxy-border rounded-2xl p-6 sm:p-10 lg:p-12 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] relative z-10">
+      <div className="w-full max-w-[520px] bg-voxy-surface border border-voxy-border rounded-2xl p-6 sm:p-10 lg:p-12 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] relative z-10">
         
         {!isSubmitted ? (
           <>
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com" 
-                    className="pl-12 bg-[#141414] border-transparent focus:border-voxy-primary/50 h-12 transition-all text-[15px]" 
+                    className="pl-12 bg-background border-border h-12 transition-all text-[15px]" 
                     required 
                   />
                 </div>
@@ -106,14 +106,14 @@ export default function ForgotPasswordPage() {
             <Button 
               variant="outline" 
               onClick={() => setIsSubmitted(false)}
-              className="w-full border-white/10 text-voxy-muted hover:text-voxy-text hover:bg-white/5 h-12 font-medium"
+              className="w-full border-voxy-border text-voxy-muted hover:text-voxy-text hover:bg-muted h-12 font-medium"
             >
               Didn't receive an email? Try again
             </Button>
           </div>
         )}
 
-        <div className="mt-10 pt-8 border-t border-white/5">
+        <div className="mt-10 pt-8 border-t border-voxy-border">
           <AuthAlternativeAction 
             message="Remember your password?"
             actionLabel="Sign in"
@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
 
       {/* Footer support text */}
       <p className="mt-12 text-[13px] text-voxy-muted relative z-10">
-        Need more help? Contact our <Link href="/support" className="text-voxy-primary hover:underline font-semibold">support team</Link>
+        Need more help? Contact our <Link href="/support" className="text-voxy-primary hover:underline font-semibold transition-colors">support team</Link>
       </p>
 
     </div>
