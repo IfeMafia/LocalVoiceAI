@@ -1,7 +1,6 @@
 import { Inter, DM_Serif_Display } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
-import QueryProvider from "@/components/providers/QueryProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,9 +26,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${dmSerif.variable} antialiased`}>
         <ThemeProvider>
-          <QueryProvider>
-            {children}
-          </QueryProvider>
+          {children}
           <Toaster 
             position="top-center"
             toastOptions={{

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { 
   Users, 
@@ -8,78 +8,87 @@ import {
   Shield, 
   User, 
   Loader2,
+  Lock,
   Mail,
   Filter,
   Trash2,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 import { Badge } from '@/components/ui/badge';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function AdminCustomersPage() {
   const { user: currentUser } = useAuth();
-  const queryClient = useQueryClient();
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [actionLoading, setActionLoading] = useState(null);
 
-  const { data: customers = [], isLoading, error } = useQuery({
-    queryKey: ['admin-customers'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/customers');
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to load users');
-      return json.customers;
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const res = await fetch('/api/admin/customers');
+        const data = await res.json();
+        if (data.success) {
+          setCustomers(data.customers);
+        }
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        toast.error('Failed to load user records');
+      } finally {
+        setLoading(false);
+      }
     }
-  });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Delete failed');
-      return json;
-    },
-    onSuccess: () => {
-      toast.success('User deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
-    },
-    onError: (err) => {
-      toast.error(err.message);
-    }
-  });
+    fetchUsers();
+  }, []);
 
-  const toggleAdminMutation = useMutation({
-    mutationFn: async ({ id, newRole }) => {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Status update failed');
-      return json;
-    },
-    onSuccess: (_, variables) => {
-      const action = variables.newRole === 'admin' ? 'promote' : 'demote';
-      toast.success(`User ${action}d successfully`);
-      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
-    },
-    onError: (err) => {
-      toast.error(err.message);
-    }
-  });
-
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to permanently delete this user?')) return;
-    deleteMutation.mutate(id);
+    
+    setActionLoading(id);
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setCustomers(customers.filter(u => u.id !== id));
+        toast.success('User deleted successfully');
+      } else {
+        toast.error(data.error || 'Delete failed');
+      }
+    } catch (error) {
+      toast.error('Internal server error during delete');
+    } finally {
+      setActionLoading(null);
+    }
   };
 
-  const handleToggleAdmin = (u) => {
+  const handleToggleAdmin = async (u) => {
     const newRole = u.role === 'admin' ? 'customer' : 'admin';
     const action = newRole === 'admin' ? 'Promote' : 'Demote';
     
     if (!confirm(`Confirm ${action} of user ${u.email}?`)) return;
-    toggleAdminMutation.mutate({ id: u.id, newRole });
+
+    setActionLoading(u.id);
+    try {
+      const res = await fetch(`/api/admin/users/${u.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCustomers(customers.map(customer => customer.id === u.id ? { ...customer, role: newRole } : customer));
+        toast.success(`User ${action}d successfully`);
+      } else {
+        toast.error(data.error || 'Status update failed');
+      }
+    } catch (error) {
+      toast.error('Internal server error during update');
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const filteredCustomers = customers.filter(u => 
@@ -88,9 +97,7 @@ export default function AdminCustomersPage() {
     u.role?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const actionLoading = deleteMutation.isPending || toggleAdminMutation.isPending;
-
-  if (isLoading) {
+  if (loading) {
     return (
       <DashboardLayout title="Users">
         <div className="flex flex-col items-center justify-center p-20 min-h-[60vh] text-zinc-500 space-y-4">
@@ -109,7 +116,7 @@ export default function AdminCustomersPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-white tracking-tight">User Directory</h1>
-            <p className="text-[15px] text-zinc-500 font-medium">
+            <p className="text-[15px] text-zinc-500">
               Manage platform users, roles, and administrative access.
             </p>
           </div>
@@ -133,7 +140,7 @@ export default function AdminCustomersPage() {
 
         {/* Directory Table */}
         <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-          <div className="overflow-x-auto min-h-[400px]">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/[0.03] bg-white/[0.01]">
@@ -187,7 +194,7 @@ export default function AdminCustomersPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button 
                              onClick={() => handleToggleAdmin(u)}
-                             disabled={(toggleAdminMutation.isPending && toggleAdminMutation.variables?.id === u.id) || u.id === currentUser?.id}
+                             disabled={actionLoading === u.id || u.id === currentUser?.id}
                              title={u.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
                              className={`h-9 w-9 flex items-center justify-center rounded-lg border transition-all ${
                                u.role === 'admin' 
@@ -195,15 +202,15 @@ export default function AdminCustomersPage() {
                                  : "bg-white/5 border-white/5 text-zinc-500 hover:text-voxy-primary hover:border-voxy-primary/30"
                              }`}
                           >
-                             {(toggleAdminMutation.isPending && toggleAdminMutation.variables?.id === u.id) ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
+                             {actionLoading === u.id ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
                           </button>
                           <button 
                              onClick={() => handleDelete(u.id)}
-                             disabled={(deleteMutation.isPending && deleteMutation.variables === u.id) || u.id === currentUser?.id}
+                             disabled={actionLoading === u.id || u.id === currentUser?.id}
                              title="Delete User"
-                             className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-zinc-500 hover:text-red-500 hover:border-red-500/30 transition-all disabled:opacity-50"
+                             className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/5 text-zinc-500 hover:text-red-500 hover:border-red-500/30 transition-all"
                           >
-                             {(deleteMutation.isPending && deleteMutation.variables === u.id) ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                             {actionLoading === u.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                           </button>
                         </div>
                       </td>
@@ -230,4 +237,3 @@ export default function AdminCustomersPage() {
     </DashboardLayout>
   );
 }
-

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { 
   User, 
@@ -17,74 +17,60 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function AdminProfilePage() {
   const { user: currentUser } = useAuth();
-  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [admin, setAdmin] = useState({ name: "", email: "" });
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
 
-  // Fetch Admin Data
-  const { data: adminData, isLoading: loading } = useQuery({
-    queryKey: ["admin-profile"],
-    queryFn: async () => {
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
+  const fetchAdminData = async () => {
+    try {
       const res = await fetch("/api/me");
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to load profile");
-      return data.user;
-    },
-  });
-
-  // Update Profile Mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updatedName) => {
-      const res = await fetch("/api/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: updatedName }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Update failed");
-      return data.user;
-    },
-    onSuccess: (data) => {
-      toast.success("Profile updated successfully");
-      queryClient.setQueryData(["admin-profile"], data);
-    },
-    onError: (err) => {
-      toast.error(err.message || "An error occurred during update");
-    },
-  });
-
-  // Change Password Mutation
-  const changePasswordMutation = useMutation({
-    mutationFn: async (newPassword) => {
-      const res = await fetch("/api/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: newPassword }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Password update failed");
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Password updated successfully");
-      setPasswords({ current: "", new: "", confirm: "" });
-    },
-    onError: (err) => {
-      toast.error(err.message || "An error occurred during password update");
-    },
-  });
-
-  const handleUpdateProfile = (e) => {
-    e.preventDefault();
-    const name = e.target.elements.fullName.value;
-    updateProfileMutation.mutate(name);
+      if (data.success) {
+        setAdmin(data.user);
+      } else {
+        toast.error(data.error || "Failed to load profile");
+      }
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      toast.error("An error occurred while loading profile");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleChangePassword = (e) => {
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: admin.name }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Profile updated successfully");
+        setAdmin(data.user);
+      } else {
+        toast.error(data.error || "Update failed");
+      }
+    } catch (err) {
+      toast.error("An error occurred during update");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
     e.preventDefault();
     if (passwords.new !== passwords.confirm) {
       return toast.error("New passwords do not match");
@@ -92,11 +78,27 @@ export default function AdminProfilePage() {
     if (passwords.new.length < 6) {
       return toast.error("Password must be at least 6 characters");
     }
-    changePasswordMutation.mutate(passwords.new);
-  };
 
-  const saving = updateProfileMutation.isPending || changePasswordMutation.isPending;
-  const admin = adminData || { name: "", email: "" };
+    setSaving(true);
+    try {
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwords.new }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Password updated successfully");
+        setPasswords({ current: "", new: "", confirm: "" });
+      } else {
+        toast.error(data.error || "Password update failed");
+      }
+    } catch (err) {
+      toast.error("An error occurred during password update");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -177,9 +179,8 @@ export default function AdminProfilePage() {
                       </div>
                       <input 
                         type="text" 
-                        id="fullName"
-                        name="fullName"
-                        defaultValue={admin.name}
+                        value={admin.name}
+                        onChange={(e) => setAdmin({...admin, name: e.target.value})}
                         className="w-full bg-[#0F0F0F] border border-white/5 rounded-xl py-4 pl-14 pr-6 text-sm font-medium text-white outline-none focus:border-voxy-primary/40 transition-all placeholder:text-zinc-800"
                         placeholder="Enter your name"
                       />
