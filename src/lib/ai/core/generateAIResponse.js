@@ -22,6 +22,6 @@ export async function generateAIResponse(
     prompt: promptOrMessages,
     systemInstruction,
     type: 'chat',
-    model: 'gpt-4o-mini' // Standard optimized model
+    model: 'gemini-2.5'
   });
 }

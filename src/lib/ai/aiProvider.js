@@ -43,15 +43,17 @@ export async function generateAI({ userId, businessId, prompt, type = 'chat', mo
         } catch (err) {
           cencoriFailures++;
           lastFailureTime = Date.now();
-          console.warn(`🛡️ [AI-GATEWAY] Cencori failed (${cencoriFailures}/${FAILURE_THRESHOLD}). Circuit opening soon.`);
+          console.warn(`🛡️ [AI-GATEWAY] Cencori Error (${cencoriFailures}/${FAILURE_THRESHOLD}) for model ${model}:`, err.message);
         }
       }
 
       // Secondary Fallback: Direct Provider (High Speed)
       try {
+        console.info(`🔄 [AI-GATEWAY] Routing through Groq Fallback...`);
         const fallbackRes = await generateGroqResponse(finalPrompt, systemInstruction);
         return { ...fallbackRes, ...security, providerUsed: "groq (fallback)", fallbackUsed: true };
       } catch (fallbackErr) {
+        console.info(`🔄 [AI-GATEWAY] Groq Failed. Final Fallback to Gemini...`);
         const finalRes = await generateGeminiResponse(finalPrompt, systemInstruction);
         return { ...finalRes, ...security, providerUsed: "gemini (fallback)", fallbackUsed: true };
       }

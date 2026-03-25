@@ -15,7 +15,7 @@ export const cencoriClient = new Cencori({
  * @param {string} params.model - Target model name
  * @param {Object} params.metadata - Contextual metadata
  */
-export async function callCencoriAI({ prompt, model = 'gpt-4o-mini', metadata = {} }) {
+export async function callCencoriAI({ prompt, model = 'gemini-2.5', metadata = {} }) {
   const messages = typeof prompt === 'string' 
     ? [{ role: 'user', content: prompt }]
     : prompt.map(m => ({
