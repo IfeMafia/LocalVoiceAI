@@ -1,32 +1,46 @@
-import { cencoriClient } from "../../cencori.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+let genAI = null;
+
+function getGeminiClient() {
+  if (!genAI) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn("⚠️ GEMINI_API_KEY is missing. Gemini will fail if called.");
+    }
+    genAI = new GoogleGenerativeAI(apiKey || "dummy-key-for-build");
+  }
+  return genAI;
+}
 
 /**
- * Gemini AI Provider (via Cencori Gateway)
- * Routes Gemini requests through Cencori for unified tracking and cost analysis.
+ * Direct Gemini AI Provider (Final Fallback Layer)
  */
 export const generateGeminiResponse = async (messages, systemInstruction) => {
-  try {
-    const cencoriMessages = [
-      { role: "system", content: systemInstruction },
-      ...messages.map(m => ({
-        role: m.role === 'model' || m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content || (m.parts && m.parts[0] ? m.parts[0].text : '')
-      }))
-    ];
+  const client = getGeminiClient();
+  const model = client.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    // Calling Gemini via Cencori
-    const response = await cencoriClient.ai.chat({
-      messages: cencoriMessages,
-      model: "gemini/gemini-2.0-flash", // Tracking Gemini usage through Cencori
-    });
+  const chat = model.startChat({
+    history: Array.isArray(messages) ? messages.slice(0, -1).map(m => ({
+      role: m.role === 'model' || m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content || (m.parts && m.parts[0] ? m.parts[0].text : '') }]
+    })) : [],
+    systemInstruction: {
+      role: "system",
+      parts: [{ text: systemInstruction }]
+    }
+  });
 
-    return {
-      text: response.content || "",
-      provider: "gemini",
-      tokensUsed: response.usage?.totalTokens || 0
-    };
-  } catch (error) {
-    console.error('Gemini-via-Cencori Provider Error:', error);
-    throw error;
-  }
+  const lastMessage = Array.isArray(messages) 
+    ? messages[messages.length - 1].content || (messages[messages.length - 1].parts && messages[messages.length - 1].parts[0] ? messages[messages.length - 1].parts[0].text : '')
+    : messages;
+
+  const result = await chat.sendMessage(lastMessage);
+  const response = await result.response;
+  
+  return {
+    text: response.text(),
+    provider: "gemini",
+    tokensUsed: response.usageMetadata?.totalTokenCount || 0
+  };
 };

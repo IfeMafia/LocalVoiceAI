@@ -1,22 +1,22 @@
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
-import { generateCencoriResponse } from './src/lib/ai/providers/cencori.js';
+import { generateAI } from './src/lib/ai/aiProvider.js';
 
 /**
- * Cencori Smoke Test (SDK based)
+ * Cencori Unified Provider Smoke Test
  */
-async function testCencoriSDK() {
-  console.log('🧪 Starting Cencori SDK Smoke Test...');
+async function testCencoriUnified() {
+  console.log('🧪 Starting Unified Provider Smoke Test...');
   try {
-    const res = await generateCencoriResponse(
-      [{ role: 'user', parts: [{ text: 'Respond with "Cencori Active!"' }] }],
-      'You are a system validator.'
-    );
-    console.log('✅ SDK Result:', res);
+    const res = await generateAI({
+      userId: 'test-user',
+      businessId: 'test-business',
+      prompt: 'Verify system integrity and respond "Cencori Unified Active!"',
+      type: 'system'
+    });
+    console.log('✅ Result Status:', res.providerUsed);
+    console.log('✅ Response:', res.text);
   } catch (error) {
-    console.error('❌ SDK Error:', error.message);
-    process.exit(1);
+    console.error('❌ Error:', error.message);
   }
 }
 
-testCencoriSDK();
+testCencoriUnified();

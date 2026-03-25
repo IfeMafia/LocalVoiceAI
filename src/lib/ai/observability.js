@@ -1,4 +1,4 @@
-import db from '@/lib/db';
+import db from '../db.js';
 
 const PRICING = {
   gemini: { input: 0.0005, output: 0.001 }, // Cost per 1K tokens
@@ -72,7 +72,19 @@ export async function trackAIUsage({ userId, businessId, requestType, provider, 
     throw error;
   } finally {
     const latency = Date.now() - startTime;
-    const cost = estimateCost({ provider, model, inputSize, outputSize });
+    
+    // Step 7: Logging dynamic metadata (providerUsed, model)
+    // Extract actual provider used from result if fallback occurred
+    const actualProvider = (result && result.providerUsed) || provider;
+    const actualModel = (result && result.model) || model;
+    const actualTokens = (result && result.tokensUsed) || 0;
+
+    const cost = estimateCost({ 
+      provider: actualProvider, 
+      model: actualModel, 
+      inputSize: actualTokens, 
+      outputSize: 0 
+    });
 
     // 3. Log to DB (Fire-and-forget style to avoid blocking response)
     db.query(`
@@ -85,10 +97,10 @@ export async function trackAIUsage({ userId, businessId, requestType, provider, 
       userId || null, 
       businessId || null, 
       requestType, 
-      provider, 
-      model, 
-      inputSize, 
-      outputSize, 
+      actualProvider, 
+      actualModel, 
+      actualTokens, 
+      0, 
       latency, 
       cost, 
       status, 
