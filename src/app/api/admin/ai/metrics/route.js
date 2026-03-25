@@ -15,7 +15,7 @@ export async function GET() {
     const res = await db.query(`
       SELECT 
         COUNT(*)::int as "totalRequests",
-        ROUND(COALESCE(SUM(estimated_cost), 0), 4) as "totalCost",
+        ROUND(COALESCE(SUM(cost_estimate), 0), 4) as "totalCost",
         ROUND(COALESCE(AVG(latency), 0), 2) as "avgLatency"
       FROM ai_usage_logs
     `);

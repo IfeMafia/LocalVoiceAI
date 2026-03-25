@@ -15,7 +15,7 @@ export async function GET() {
     const dailyCostRes = await db.query(`
       SELECT 
         DATE_TRUNC('day', created_at)::date as "date",
-        ROUND(SUM(estimated_cost), 6) as "cost"
+        ROUND(SUM(cost_estimate), 6) as "cost"
       FROM ai_usage_logs
       GROUP BY 1
       ORDER BY 1 DESC
@@ -26,7 +26,7 @@ export async function GET() {
     const typeCostRes = await db.query(`
       SELECT 
         request_type as "type",
-        ROUND(SUM(estimated_cost), 6) as "cost"
+        ROUND(SUM(cost_estimate), 6) as "cost"
       FROM ai_usage_logs
       GROUP BY 1
       ORDER BY 2 DESC
